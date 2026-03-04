@@ -61,14 +61,18 @@ export interface PlayerWithStats extends Player {
 export async function getPlayers(): Promise<Player[]> {
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, teamId")
+    .select("id, name, teamid")
     .order("id");
 
   if (error) {
     throw error;
   }
 
-  return data as Player[];
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    teamId: r.teamid,
+  })) as Player[];
 }
 
 export async function getPlayer(id: string): Promise<Player | undefined> {
@@ -79,15 +83,19 @@ export async function getPlayer(id: string): Promise<Player | undefined> {
 export async function getPlayersByTeam(teamId: string): Promise<Player[]> {
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, teamId")
-    .eq("teamId", teamId)
+    .select("id, name, teamid")
+    .eq("teamid", teamId)
     .order("id");
 
   if (error) {
     throw error;
   }
 
-  return data as Player[];
+  return (data ?? []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    teamId: r.teamid,
+  })) as Player[];
 }
 
 export async function getAllPlayerStats(): Promise<PlayerStats[]> {
