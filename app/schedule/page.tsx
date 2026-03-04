@@ -1,5 +1,7 @@
 import { getMatches, getTeams } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function SchedulePage() {
   const [matches, teams] = await Promise.all([getMatches(), getTeams()]);
 

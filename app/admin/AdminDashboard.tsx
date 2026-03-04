@@ -14,6 +14,9 @@ interface PlayerStatInput {
   steals: string;
   blocks: string;
   turnovers: string;
+  personalFouls: string;
+  twoFgMade: string;
+  twoFgAttempts: string;
   fgMade: string;
   fgAttempts: string;
   threePtMade: string;
@@ -54,6 +57,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
   const [statSteals, setStatSteals] = useState("0");
   const [statBlocks, setStatBlocks] = useState("0");
   const [statTurnovers, setStatTurnovers] = useState("0");
+  const [statPf, setStatPf] = useState("0");
+  const [statTwoFgMade, setStatTwoFgMade] = useState("0");
+  const [statTwoFgAttempts, setStatTwoFgAttempts] = useState("0");
   const [statFgMade, setStatFgMade] = useState("0");
   const [statFgAttempts, setStatFgAttempts] = useState("0");
   const [stat3ptMade, setStat3ptMade] = useState("0");
@@ -86,6 +92,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
       steals: "0",
       blocks: "0",
       turnovers: "0",
+      personalFouls: "0",
+      twoFgMade: "0",
+      twoFgAttempts: "0",
       fgMade: "0",
       fgAttempts: "0",
       threePtMade: "0",
@@ -123,6 +132,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             steals: parseInt(ps.steals) || 0,
             blocks: parseInt(ps.blocks) || 0,
             turnovers: parseInt(ps.turnovers) || 0,
+              personalFouls: parseInt(ps.personalFouls) || 0,
+              twoFgMade: parseInt(ps.twoFgMade) || 0,
+              twoFgAttempts: parseInt(ps.twoFgAttempts) || 0,
             fgMade: parseInt(ps.fgMade) || 0,
             fgAttempts: parseInt(ps.fgAttempts) || 0,
             threePtMade: parseInt(ps.threePtMade) || 0,
@@ -320,6 +332,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
           steals: parseInt(statSteals) || 0,
           blocks: parseInt(statBlocks) || 0,
           turnovers: parseInt(statTurnovers) || 0,
+              personalFouls: parseInt(statPf) || 0,
+              twoFgMade: parseInt(statTwoFgMade) || 0,
+              twoFgAttempts: parseInt(statTwoFgAttempts) || 0,
           fgMade: parseInt(statFgMade) || 0,
           fgAttempts: parseInt(statFgAttempts) || 0,
           threePtMade: parseInt(stat3ptMade) || 0,
@@ -343,6 +358,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
       setStatSteals("0");
       setStatBlocks("0");
       setStatTurnovers("0");
+      setStatPf("0");
+      setStatTwoFgMade("0");
+      setStatTwoFgAttempts("0");
       setStatFgMade("0");
       setStatFgAttempts("0");
       setStat3ptMade("0");
@@ -688,6 +706,36 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                       min="0"
                       value={statTurnovers}
                       onChange={(e) => setStatTurnovers(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded bg-card-bg text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">Pražangos (PF)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={statPf}
+                      onChange={(e) => setStatPf(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded bg-card-bg text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">2FG pataikė</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={statTwoFgMade}
+                      onChange={(e) => setStatTwoFgMade(e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded bg-card-bg text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">2FG metė</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={statTwoFgAttempts}
+                      onChange={(e) => setStatTwoFgAttempts(e.target.value)}
                       className="w-full px-3 py-2 border border-border rounded bg-card-bg text-center"
                     />
                   </div>

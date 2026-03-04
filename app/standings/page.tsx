@@ -1,5 +1,7 @@
 import { getStandings } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function StandingsPage() {
   const standings = await getStandings();
 

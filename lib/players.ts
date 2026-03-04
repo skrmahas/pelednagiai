@@ -14,6 +14,9 @@ export interface GameStats {
   steals: number;
   blocks: number;
   turnovers: number;
+  personalFouls: number;
+  twoFgMade: number;
+  twoFgAttempts: number;
   fgMade: number;
   fgAttempts: number;
   threePtMade: number;
@@ -29,6 +32,9 @@ export interface StatTotals {
   steals: number;
   blocks: number;
   turnovers: number;
+  personalFouls: number;
+  twoFgMade: number;
+  twoFgAttempts: number;
   fgMade: number;
   fgAttempts: number;
   threePtMade: number;
@@ -53,6 +59,7 @@ export interface PlayerWithStats extends Player {
   avgSteals: number;
   avgBlocks: number;
   avgTurnovers: number;
+   // we keep PF / 2FG totals inside stats.totals for now
   fgPercentage: number;
   threePtPercentage: number;
   ftPercentage: number;
@@ -102,7 +109,7 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
   const { data, error } = await supabase
     .from("player_game_stats")
     .select(
-      "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
+      "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, pf, twofgmade, twofgattempts, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
     );
 
   if (error) {
@@ -126,6 +133,9 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
           steals: 0,
           blocks: 0,
           turnovers: 0,
+          personalFouls: 0,
+          twoFgMade: 0,
+          twoFgAttempts: 0,
           fgMade: 0,
           fgAttempts: 0,
           threePtMade: 0,
@@ -145,6 +155,9 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
       steals: r.steals,
       blocks: r.blocks,
       turnovers: r.turnovers,
+      personalFouls: r.pf ?? 0,
+      twoFgMade: r.twofgmade ?? 0,
+      twoFgAttempts: r.twofgattempts ?? 0,
       fgMade: r.fgmade,
       fgAttempts: r.fgattempts,
       threePtMade: r.threeptmade,
@@ -161,6 +174,9 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
     ps.totals.steals += game.steals;
     ps.totals.blocks += game.blocks;
     ps.totals.turnovers += game.turnovers;
+    ps.totals.personalFouls += game.personalFouls;
+    ps.totals.twoFgMade += game.twoFgMade;
+    ps.totals.twoFgAttempts += game.twoFgAttempts;
     ps.totals.fgMade += game.fgMade;
     ps.totals.fgAttempts += game.fgAttempts;
     ps.totals.threePtMade += game.threePtMade;
@@ -208,7 +224,8 @@ export async function getPlayersWithStats(): Promise<PlayerWithStats[]> {
       games: [],
       totals: {
         points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
-        turnovers: 0, fgMade: 0, fgAttempts: 0, threePtMade: 0,
+        turnovers: 0, personalFouls: 0, twoFgMade: 0, twoFgAttempts: 0,
+        fgMade: 0, fgAttempts: 0, threePtMade: 0,
         threePtAttempts: 0, ftMade: 0, ftAttempts: 0
       }
     };
@@ -244,6 +261,9 @@ export async function addGameStats(playerId: string, gameStats: GameStats): Prom
     steals: gameStats.steals,
     blocks: gameStats.blocks,
     turnovers: gameStats.turnovers,
+    pf: gameStats.personalFouls,
+    twofgmade: gameStats.twoFgMade,
+    twofgattempts: gameStats.twoFgAttempts,
     fgmade: gameStats.fgMade,
     fgattempts: gameStats.fgAttempts,
     threeptmade: gameStats.threePtMade,

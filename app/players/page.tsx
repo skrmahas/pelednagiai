@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getPlayersWithStats } from "@/lib/players";
 import { getTeams } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function PlayersPage() {
   const [playersWithStats, teams] = await Promise.all([
     getPlayersWithStats(),

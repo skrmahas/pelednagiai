@@ -21,7 +21,8 @@ export default async function PlayerProfilePage({ params }: Props) {
   const gamesPlayed = stats?.games.length || 0;
   const t = stats?.totals || {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0,
-    turnovers: 0, fgMade: 0, fgAttempts: 0, threePtMade: 0,
+    turnovers: 0, personalFouls: 0, twoFgMade: 0, twoFgAttempts: 0,
+    fgMade: 0, fgAttempts: 0, threePtMade: 0,
     threePtAttempts: 0, ftMade: 0, ftAttempts: 0
   };
 
@@ -32,6 +33,7 @@ export default async function PlayerProfilePage({ params }: Props) {
   const avgSteals = gamesPlayed > 0 ? (t.steals / gamesPlayed).toFixed(1) : "0.0";
   const avgBlocks = gamesPlayed > 0 ? (t.blocks / gamesPlayed).toFixed(1) : "0.0";
   const avgTurnovers = gamesPlayed > 0 ? (t.turnovers / gamesPlayed).toFixed(1) : "0.0";
+  const avgPf = gamesPlayed > 0 ? (t.personalFouls / gamesPlayed).toFixed(1) : "0.0";
   const fgPct = t.fgAttempts > 0 ? ((t.fgMade / t.fgAttempts) * 100).toFixed(1) : "0.0";
   const threePtPct = t.threePtAttempts > 0 ? ((t.threePtMade / t.threePtAttempts) * 100).toFixed(1) : "0.0";
   const ftPct = t.ftAttempts > 0 ? ((t.ftMade / t.ftAttempts) * 100).toFixed(1) : "0.0";
@@ -93,6 +95,10 @@ export default async function PlayerProfilePage({ params }: Props) {
               <p className="text-xs text-text-muted">KLD</p>
             </div>
             <div className="bg-background rounded p-3 text-center border border-border">
+              <p className="text-2xl font-bold">{avgPf}</p>
+              <p className="text-xs text-text-muted">PF</p>
+            </div>
+            <div className="bg-background rounded p-3 text-center border border-border">
               <p className="text-2xl font-bold">{fgPct}%</p>
               <p className="text-xs text-text-muted">FG%</p>
             </div>
@@ -119,6 +125,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                   <th className="px-3 py-2 text-center text-text-muted">REZ</th>
                   <th className="px-3 py-2 text-center text-text-muted">PER</th>
                   <th className="px-3 py-2 text-center text-text-muted">BLK</th>
+                  <th className="px-3 py-2 text-center text-text-muted">PF</th>
                   <th className="px-3 py-2 text-center text-text-muted">KLD</th>
                   <th className="px-3 py-2 text-center text-text-muted">FG</th>
                   <th className="px-3 py-2 text-center text-text-muted">3PT</th>
@@ -136,6 +143,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                       <td className="px-3 py-2 text-center">{game.assists}</td>
                       <td className="px-3 py-2 text-center">{game.steals}</td>
                       <td className="px-3 py-2 text-center">{game.blocks}</td>
+                      <td className="px-3 py-2 text-center">{game.personalFouls}</td>
                       <td className="px-3 py-2 text-center text-danger">{game.turnovers}</td>
                       <td className="px-3 py-2 text-center">{game.fgMade}/{game.fgAttempts}</td>
                       <td className="px-3 py-2 text-center">{game.threePtMade}/{game.threePtAttempts}</td>
@@ -172,6 +180,11 @@ export default async function PlayerProfilePage({ params }: Props) {
                   <td className="px-3 py-2">Taškai</td>
                   <td className="px-3 py-2 text-center font-bold">{t.points}</td>
                   <td className="px-3 py-2 text-center text-primary font-bold">{avgPoints}</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2">Asmeninės pražangos (PF)</td>
+                  <td className="px-3 py-2 text-center font-bold">{t.personalFouls}</td>
+                  <td className="px-3 py-2 text-center text-primary font-bold">{avgPf}</td>
                 </tr>
                 <tr>
                   <td className="px-3 py-2">Atšokę kamuoliai</td>

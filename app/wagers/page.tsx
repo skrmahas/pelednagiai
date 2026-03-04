@@ -2,6 +2,8 @@ import { getMatches, getTeams } from "@/lib/data";
 import { getWagers } from "@/lib/wagers";
 import WagersList from "./WagersList";
 
+export const dynamic = "force-dynamic";
+
 export default async function WagersPage() {
   const [matches, teams, wagers] = await Promise.all([
     getMatches(),
