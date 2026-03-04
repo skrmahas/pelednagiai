@@ -1,65 +1,133 @@
-import Image from "next/image";
+import { getTeams } from "@/lib/data";
+import { getPlayersWithStats } from "@/lib/players";
+import Link from "next/link";
 
-export default function Home() {
+export default async function HomePage() {
+  const [teams, playersWithStats] = await Promise.all([
+    getTeams(),
+    getPlayersWithStats(),
+  ]);
+
+  const playersByTeam = playersWithStats.reduce((acc, player) => {
+    if (!acc[player.teamId]) acc[player.teamId] = [];
+    acc[player.teamId].push(player);
+    return acc;
+  }, {} as Record<string, typeof playersWithStats>);
+
+  const topPlayers = [...playersWithStats]
+    .sort((a, b) => b.eff - a.eff)
+    .slice(0, 3);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-8">
+      <section className="text-center space-y-4 py-8">
+        <h1 className="text-5xl font-black">
+          <span className="text-white">PELĖDNAGIŲ</span>
+          <span className="bg-primary text-black px-3 py-1 rounded ml-2">2x2</span>
+          <span className="text-white ml-2">LYGA</span>
+        </h1>
+        <p className="text-xl text-text-muted">
+          Draugų krepšinio turnyras
+        </p>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Link
+          href="/standings"
+          className="block bg-card-bg rounded-lg p-5 border border-border hover:border-primary hover:bg-card-bg-hover transition-all group"
+        >
+          <div className="text-3xl mb-2">📊</div>
+          <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Lentelė</h3>
+          <p className="text-sm text-text-muted mt-1">Komandų reitingai</p>
+        </Link>
+        <Link
+          href="/schedule"
+          className="block bg-card-bg rounded-lg p-5 border border-border hover:border-primary hover:bg-card-bg-hover transition-all group"
+        >
+          <div className="text-3xl mb-2">🏀</div>
+          <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Rungtynės</h3>
+          <p className="text-sm text-text-muted mt-1">Tvarkaraštis</p>
+        </Link>
+        <Link
+          href="/players"
+          className="block bg-card-bg rounded-lg p-5 border border-border hover:border-primary hover:bg-card-bg-hover transition-all group"
+        >
+          <div className="text-3xl mb-2">👥</div>
+          <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Žaidėjai</h3>
+          <p className="text-sm text-text-muted mt-1">Statistika ir EFF</p>
+        </Link>
+        <Link
+          href="/wagers"
+          className="block bg-card-bg rounded-lg p-5 border border-border hover:border-primary hover:bg-card-bg-hover transition-all group"
+        >
+          <div className="text-3xl mb-2">💰</div>
+          <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Lažybos</h3>
+          <p className="text-sm text-text-muted mt-1">Statyk už komandą</p>
+        </Link>
+        <Link
+          href="/admin"
+          className="block bg-card-bg rounded-lg p-5 border border-border hover:border-primary hover:bg-card-bg-hover transition-all group"
+        >
+          <div className="text-3xl mb-2">⚙️</div>
+          <h3 className="text-lg font-bold group-hover:text-primary transition-colors">Admin</h3>
+          <p className="text-sm text-text-muted mt-1">Valdymas</p>
+        </Link>
+      </section>
+
+      {topPlayers.some(p => p.gamesPlayed > 0) && (
+        <section className="bg-card-bg rounded-lg border border-border overflow-hidden">
+          <div className="bg-primary text-black px-5 py-3 font-bold text-lg">
+            TOP ŽAIDĖJAI (EFF)
+          </div>
+          <div className="divide-y divide-border">
+            {topPlayers.filter(p => p.gamesPlayed > 0).map((player, index) => (
+              <Link
+                key={player.id}
+                href={`/players/${player.id}`}
+                className="p-4 flex items-center gap-4 hover:bg-card-bg-hover transition-colors block"
+              >
+                <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary text-black rounded-full font-black text-lg">
+                  {index + 1}
+                </span>
+                <div className="flex-1">
+                  <h3 className="font-bold">{player.name}</h3>
+                  <p className="text-sm text-text-muted">
+                    {player.avgPoints} TŠK | {player.avgRebounds} ATŠ | {player.avgAssists} REZ
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-primary">{player.eff}</p>
+                  <p className="text-xs text-text-muted">EFF</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="bg-card-bg rounded-lg border border-border overflow-hidden">
+        <div className="bg-primary text-black px-5 py-3 font-bold text-lg">
+          KOMANDOS
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="divide-y divide-border">
+          {teams.map((team, index) => (
+            <div
+              key={team.id}
+              className="p-4 flex items-center gap-4 hover:bg-card-bg-hover transition-colors"
+            >
+              <span className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary text-black rounded font-black text-lg">
+                {index + 1}
+              </span>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">{team.name}</h3>
+                <p className="text-sm text-text-muted">
+                  {playersByTeam[team.id]?.map(p => p.name).join(", ") || "—"}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-      </main>
+      </section>
     </div>
   );
 }

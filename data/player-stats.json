@@ -1,0 +1,246 @@
+[
+  {
+    "playerId": "1",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "2",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "3",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "4",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "5",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "6",
+    "games": [],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "7",
+    "games": [
+      {
+        "matchId": "5",
+        "points": 0,
+        "rebounds": 0,
+        "assists": 0,
+        "steals": 0,
+        "blocks": 0,
+        "turnovers": 0,
+        "fgMade": 0,
+        "fgAttempts": 0,
+        "threePtMade": 0,
+        "threePtAttempts": 0,
+        "ftMade": 0,
+        "ftAttempts": 0
+      }
+    ],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "8",
+    "games": [
+      {
+        "matchId": "5",
+        "points": 0,
+        "rebounds": 0,
+        "assists": 0,
+        "steals": 0,
+        "blocks": 0,
+        "turnovers": 0,
+        "fgMade": 0,
+        "fgAttempts": 0,
+        "threePtMade": 0,
+        "threePtAttempts": 0,
+        "ftMade": 0,
+        "ftAttempts": 0
+      }
+    ],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "9",
+    "games": [
+      {
+        "matchId": "5",
+        "points": 0,
+        "rebounds": 0,
+        "assists": 0,
+        "steals": 0,
+        "blocks": 0,
+        "turnovers": 0,
+        "fgMade": 0,
+        "fgAttempts": 0,
+        "threePtMade": 0,
+        "threePtAttempts": 0,
+        "ftMade": 0,
+        "ftAttempts": 0
+      }
+    ],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  },
+  {
+    "playerId": "10",
+    "games": [
+      {
+        "matchId": "5",
+        "points": 0,
+        "rebounds": 0,
+        "assists": 0,
+        "steals": 0,
+        "blocks": 0,
+        "turnovers": 0,
+        "fgMade": 0,
+        "fgAttempts": 0,
+        "threePtMade": 0,
+        "threePtAttempts": 0,
+        "ftMade": 0,
+        "ftAttempts": 0
+      }
+    ],
+    "totals": {
+      "points": 0,
+      "rebounds": 0,
+      "assists": 0,
+      "steals": 0,
+      "blocks": 0,
+      "turnovers": 0,
+      "fgMade": 0,
+      "fgAttempts": 0,
+      "threePtMade": 0,
+      "threePtAttempts": 0,
+      "ftMade": 0,
+      "ftAttempts": 0
+    }
+  }
+]

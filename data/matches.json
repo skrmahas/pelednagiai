@@ -1,0 +1,254 @@
+[
+  {
+    "id": "3",
+    "homeTeamId": "5",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 2,
+    "status": "scheduled"
+  },
+  {
+    "id": "4",
+    "homeTeamId": "2",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 2,
+    "status": "scheduled"
+  },
+  {
+    "id": "5",
+    "homeTeamId": "4",
+    "awayTeamId": "5",
+    "homeScore": 123,
+    "awayScore": 1,
+    "round": 3,
+    "status": "played"
+  },
+  {
+    "id": "6",
+    "homeTeamId": "1",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 3,
+    "status": "scheduled"
+  },
+  {
+    "id": "7",
+    "homeTeamId": "2",
+    "awayTeamId": "4",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 4,
+    "status": "scheduled"
+  },
+  {
+    "id": "8",
+    "homeTeamId": "5",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 4,
+    "status": "scheduled"
+  },
+  {
+    "id": "9",
+    "homeTeamId": "4",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 5,
+    "status": "scheduled"
+  },
+  {
+    "id": "10",
+    "homeTeamId": "2",
+    "awayTeamId": "5",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 5,
+    "status": "scheduled"
+  },
+  {
+    "id": "11",
+    "homeTeamId": "2",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 6,
+    "status": "scheduled"
+  },
+  {
+    "id": "12",
+    "homeTeamId": "4",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 6,
+    "status": "scheduled"
+  },
+  {
+    "id": "13",
+    "homeTeamId": "1",
+    "awayTeamId": "5",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 7,
+    "status": "scheduled"
+  },
+  {
+    "id": "14",
+    "homeTeamId": "3",
+    "awayTeamId": "2",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 7,
+    "status": "scheduled"
+  },
+  {
+    "id": "15",
+    "homeTeamId": "5",
+    "awayTeamId": "4",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 8,
+    "status": "scheduled"
+  },
+  {
+    "id": "16",
+    "homeTeamId": "3",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 8,
+    "status": "scheduled"
+  },
+  {
+    "id": "17",
+    "homeTeamId": "4",
+    "awayTeamId": "2",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 9,
+    "status": "scheduled"
+  },
+  {
+    "id": "18",
+    "homeTeamId": "3",
+    "awayTeamId": "5",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 9,
+    "status": "scheduled"
+  },
+  {
+    "id": "19",
+    "homeTeamId": "1",
+    "awayTeamId": "4",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 10,
+    "status": "scheduled"
+  },
+  {
+    "id": "20",
+    "homeTeamId": "5",
+    "awayTeamId": "2",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 10,
+    "status": "scheduled"
+  },
+  {
+    "id": "21",
+    "homeTeamId": "1",
+    "awayTeamId": "2",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 11,
+    "status": "scheduled"
+  },
+  {
+    "id": "22",
+    "homeTeamId": "3",
+    "awayTeamId": "4",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 11,
+    "status": "scheduled"
+  },
+  {
+    "id": "23",
+    "homeTeamId": "5",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 12,
+    "status": "scheduled"
+  },
+  {
+    "id": "24",
+    "homeTeamId": "2",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 12,
+    "status": "scheduled"
+  },
+  {
+    "id": "25",
+    "homeTeamId": "4",
+    "awayTeamId": "5",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 13,
+    "status": "scheduled"
+  },
+  {
+    "id": "26",
+    "homeTeamId": "1",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 13,
+    "status": "scheduled"
+  },
+  {
+    "id": "27",
+    "homeTeamId": "2",
+    "awayTeamId": "4",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 14,
+    "status": "scheduled"
+  },
+  {
+    "id": "28",
+    "homeTeamId": "5",
+    "awayTeamId": "3",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 14,
+    "status": "scheduled"
+  },
+  {
+    "id": "29",
+    "homeTeamId": "4",
+    "awayTeamId": "1",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 15,
+    "status": "scheduled"
+  },
+  {
+    "id": "30",
+    "homeTeamId": "2",
+    "awayTeamId": "5",
+    "homeScore": null,
+    "awayScore": null,
+    "round": 15,
+    "status": "scheduled"
+  }
+]

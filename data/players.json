@@ -1,0 +1,12 @@
+[
+  { "id": "1", "name": "Kajus Jančauskas", "teamId": "1" },
+  { "id": "2", "name": "Skirmantas Žukas", "teamId": "1" },
+  { "id": "3", "name": "Augustas Kapočius", "teamId": "2" },
+  { "id": "4", "name": "Augustas Galinaitis", "teamId": "2" },
+  { "id": "5", "name": "Redas Jankauskas", "teamId": "3" },
+  { "id": "6", "name": "Žygimantas Aleksandravičius", "teamId": "3" },
+  { "id": "7", "name": "Simonas Bagdonas", "teamId": "4" },
+  { "id": "8", "name": "Vakaris Janeliūnas", "teamId": "4" },
+  { "id": "9", "name": "Vilius Tubilevičius", "teamId": "5" },
+  { "id": "10", "name": "Robertas Černeckis", "teamId": "5" }
+]

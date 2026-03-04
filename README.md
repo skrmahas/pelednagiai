@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pelėdnagių 2x2 lyga
 
-## Getting Started
+Draugų krepšinio turnyro svetainė su juoda/oranžine tema.
 
-First, run the development server:
+## Paleidimas
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Svetainė: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Puslapiai
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` – Pradžia su komandų sąrašu
+- `/standings` – Turnyrinė lentelė
+- `/schedule` – Rungtynės (30 rungtynių - kiekviena komanda žaidžia 3x prieš kiekvieną)
+- `/players` – Žaidėjų sąrašas
+- `/wagers` – Lažybos
+- `/admin` – Administravimas
 
-## Learn More
+## Komandos ir žaidėjai
 
-To learn more about Next.js, take a look at the following resources:
+1. **Traktorių žibintai**: Kajus Jančauskas, Skirmantas Žukas
+2. **Neblaivūs už vairo**: Augustas Kapočius, Augustas Galinaitis
+3. **Malūnsnarglis**: Redas Jankauskas, Žygimantas Aleksandravičius
+4. **Pride police**: Simonas Bagdonas, Vakaris Janeliūnas
+5. **Komanda be pavadinimo**: Vilius Tubilevičius, Robertas Černeckis
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Administravimas
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Slaptažodis `.env.local` faile:
+```
+ADMIN_PASSWORD=peleda2024
+```
 
-## Deploy on Vercel
+Admin funkcijos:
+- Pridėti/redaguoti/trinti rungtynes
+- Įvesti rezultatus
+- Kurti lažybas su koeficientais
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Lažybos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Administratorius kuria lažybas su koeficientais
+- Lankytojai gali statyti už komandas
+- Statymai rodomi realiu laiku
+
+## Technologijos
+
+- Next.js 16
+- TypeScript
+- Tailwind CSS
+- JSON failai duomenims
