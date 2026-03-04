@@ -1,7 +1,4 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
+import { supabase } from "./supabase";
 
 export interface Team {
   id: string;
@@ -31,9 +28,16 @@ export interface Standing {
 }
 
 export async function getTeams(): Promise<Team[]> {
-  const filePath = path.join(DATA_DIR, 'teams.json');
-  const data = await fs.readFile(filePath, 'utf-8');
-  return JSON.parse(data);
+  const { data, error } = await supabase
+    .from("teams")
+    .select("id, name")
+    .order("id");
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Team[];
 }
 
 export async function getTeam(id: string): Promise<Team | undefined> {
@@ -42,56 +46,110 @@ export async function getTeam(id: string): Promise<Team | undefined> {
 }
 
 export async function updateTeam(id: string, name: string): Promise<Team | null> {
-  const filePath = path.join(DATA_DIR, 'teams.json');
-  const teams = await getTeams();
-  const index = teams.findIndex(t => t.id === id);
-  if (index === -1) return null;
-  teams[index].name = name;
-  await fs.writeFile(filePath, JSON.stringify(teams, null, 2));
-  return teams[index];
+  const { data, error } = await supabase
+    .from("teams")
+    .update({ name })
+    .eq("id", id)
+    .select("id, name")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as Team) ?? null;
 }
 
 export async function getMatches(): Promise<Match[]> {
-  const filePath = path.join(DATA_DIR, 'matches.json');
-  const data = await fs.readFile(filePath, 'utf-8');
-  return JSON.parse(data);
+  const { data, error } = await supabase
+    .from("matches")
+    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .order("round")
+    .order("id");
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((m) => ({
+    ...m,
+    id: String(m.id),
+  })) as Match[];
 }
 
 export async function getMatch(id: string): Promise<Match | undefined> {
-  const matches = await getMatches();
-  return matches.find(m => m.id === id);
+  const { data, error } = await supabase
+    .from("matches")
+    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) return undefined;
+
+  return {
+    ...(data as any),
+    id: String((data as any).id),
+  } as Match;
 }
 
 export async function createMatch(match: Omit<Match, 'id'>): Promise<Match> {
-  const filePath = path.join(DATA_DIR, 'matches.json');
-  const matches = await getMatches();
-  const newId = String(Math.max(...matches.map(m => parseInt(m.id)), 0) + 1);
-  const newMatch: Match = { id: newId, ...match };
-  matches.push(newMatch);
-  await fs.writeFile(filePath, JSON.stringify(matches, null, 2));
-  return newMatch;
+  const { data, error } = await supabase
+    .from("matches")
+    .insert({
+      homeTeamId: match.homeTeamId,
+      awayTeamId: match.awayTeamId,
+      homeScore: match.homeScore,
+      awayScore: match.awayScore,
+      round: match.round,
+      status: match.status,
+    })
+    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    ...(data as any),
+    id: String((data as any).id),
+  } as Match;
 }
 
 export async function updateMatch(
   id: string,
   updates: Partial<Pick<Match, 'homeScore' | 'awayScore' | 'status' | 'round'>>
 ): Promise<Match | null> {
-  const filePath = path.join(DATA_DIR, 'matches.json');
-  const matches = await getMatches();
-  const index = matches.findIndex(m => m.id === id);
-  if (index === -1) return null;
-  matches[index] = { ...matches[index], ...updates };
-  await fs.writeFile(filePath, JSON.stringify(matches, null, 2));
-  return matches[index];
+  const { data, error } = await supabase
+    .from("matches")
+    .update(updates)
+    .eq("id", id)
+    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) return null;
+
+  return {
+    ...(data as any),
+    id: String((data as any).id),
+  } as Match;
 }
 
 export async function deleteMatch(id: string): Promise<boolean> {
-  const filePath = path.join(DATA_DIR, 'matches.json');
-  const matches = await getMatches();
-  const index = matches.findIndex(m => m.id === id);
-  if (index === -1) return false;
-  matches.splice(index, 1);
-  await fs.writeFile(filePath, JSON.stringify(matches, null, 2));
+  const { error } = await supabase.from("matches").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+
   return true;
 }
 
