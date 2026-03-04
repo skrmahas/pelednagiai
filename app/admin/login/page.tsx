@@ -71,10 +71,6 @@ export default function AdminLoginPage() {
           >
             {loading ? "..." : "PRISIJUNGTI"}
           </button>
-
-          <p className="text-center text-text-muted text-sm mt-4">
-            Hint: password is <span className="text-primary font-mono">AugisBaugis123</span>
-          </p>
         </form>
       </div>
     </div>
