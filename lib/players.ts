@@ -94,7 +94,7 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
   const { data, error } = await supabase
     .from("player_game_stats")
     .select(
-      "playerId, matchId, points, rebounds, assists, steals, blocks, turnovers, fgMade, fgAttempts, threePtMade, threePtAttempts, ftMade, ftAttempts"
+      "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
     );
 
   if (error) {
@@ -104,7 +104,8 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
   const statsByPlayer = new Map<string, PlayerStats>();
 
   for (const row of data ?? []) {
-    const playerId = row.playerId as string;
+    const r: any = row;
+    const playerId = r.playerid as string;
     let ps = statsByPlayer.get(playerId);
     if (!ps) {
       ps = {
@@ -129,19 +130,19 @@ export async function getAllPlayerStats(): Promise<PlayerStats[]> {
     }
 
     const game: GameStats = {
-      matchId: row.matchId,
-      points: row.points,
-      rebounds: row.rebounds,
-      assists: row.assists,
-      steals: row.steals,
-      blocks: row.blocks,
-      turnovers: row.turnovers,
-      fgMade: row.fgMade,
-      fgAttempts: row.fgAttempts,
-      threePtMade: row.threePtMade,
-      threePtAttempts: row.threePtAttempts,
-      ftMade: row.ftMade,
-      ftAttempts: row.ftAttempts,
+      matchId: r.matchid,
+      points: r.points,
+      rebounds: r.rebounds,
+      assists: r.assists,
+      steals: r.steals,
+      blocks: r.blocks,
+      turnovers: r.turnovers,
+      fgMade: r.fgmade,
+      fgAttempts: r.fgattempts,
+      threePtMade: r.threeptmade,
+      threePtAttempts: r.threeptattempts,
+      ftMade: r.ftmade,
+      ftAttempts: r.ftattempts,
     };
 
     ps.games.push(game);
@@ -227,20 +228,20 @@ export async function getPlayersWithStats(): Promise<PlayerWithStats[]> {
 
 export async function addGameStats(playerId: string, gameStats: GameStats): Promise<PlayerStats | null> {
   const { error } = await supabase.from("player_game_stats").insert({
-    playerId,
-    matchId: gameStats.matchId,
+    playerid: playerId,
+    matchid: gameStats.matchId,
     points: gameStats.points,
     rebounds: gameStats.rebounds,
     assists: gameStats.assists,
     steals: gameStats.steals,
     blocks: gameStats.blocks,
     turnovers: gameStats.turnovers,
-    fgMade: gameStats.fgMade,
-    fgAttempts: gameStats.fgAttempts,
-    threePtMade: gameStats.threePtMade,
-    threePtAttempts: gameStats.threePtAttempts,
-    ftMade: gameStats.ftMade,
-    ftAttempts: gameStats.ftAttempts,
+    fgmade: gameStats.fgMade,
+    fgattempts: gameStats.fgAttempts,
+    threeptmade: gameStats.threePtMade,
+    threeptattempts: gameStats.threePtAttempts,
+    ftmade: gameStats.ftMade,
+    ftattempts: gameStats.ftAttempts,
   });
 
   if (error) {
