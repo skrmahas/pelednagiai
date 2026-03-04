@@ -15,7 +15,7 @@ Svetainė: http://localhost:3000
 
 - `/` – Pradžia su komandų sąrašu
 - `/standings` – Turnyrinė lentelė
-- `/schedule` – Rungtynės (30 rungtynių - kiekviena komanda žaidžia 3x prieš kiekvieną)
+- `/schedule` – Rungtynės (30 rungtynių – 3 ratai, kiekviename rate visos komandos sužaidžia tarpusavyje po kartą)
 - `/players` – Žaidėjų sąrašas
 - `/wagers` – Lažybos
 - `/admin` – Administravimas
@@ -26,13 +26,13 @@ Svetainė: http://localhost:3000
 2. **Neblaivūs už vairo**: Augustas Kapočius, Augustas Galinaitis
 3. **Malūnsnarglis**: Redas Jankauskas, Žygimantas Aleksandravičius
 4. **Pride police**: Simonas Bagdonas, Vakaris Janeliūnas
-5. **Komanda be pavadinimo**: Vilius Tubilevičius, Robertas Černeckis
+5. **Geeks in sneaks**: Vilius Tubilevičius, Robertas Černeckis
 
 ## Administravimas
 
 Slaptažodis `.env.local` faile:
 ```
-ADMIN_PASSWORD=peleda2024
+ADMIN_PASSWORD=AugisBaugis123
 ```
 
 Admin funkcijos:
