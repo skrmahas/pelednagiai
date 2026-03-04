@@ -63,7 +63,7 @@ export async function updateTeam(id: string, name: string): Promise<Team | null>
 export async function getMatches(): Promise<Match[]> {
   const { data, error } = await supabase
     .from("matches")
-    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .order("round")
     .order("id");
 
@@ -71,16 +71,21 @@ export async function getMatches(): Promise<Match[]> {
     throw error;
   }
 
-  return (data ?? []).map((m) => ({
-    ...m,
+  return (data ?? []).map((m: any) => ({
     id: String(m.id),
+    homeTeamId: m.hometeamid,
+    awayTeamId: m.awayteamid,
+    homeScore: m.homescore,
+    awayScore: m.awayscore,
+    round: m.round,
+    status: m.status,
   })) as Match[];
 }
 
 export async function getMatch(id: string): Promise<Match | undefined> {
   const { data, error } = await supabase
     .from("matches")
-    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .eq("id", id)
     .maybeSingle();
 
@@ -90,9 +95,16 @@ export async function getMatch(id: string): Promise<Match | undefined> {
 
   if (!data) return undefined;
 
+  const m: any = data;
+
   return {
-    ...(data as any),
-    id: String((data as any).id),
+    id: String(m.id),
+    homeTeamId: m.hometeamid,
+    awayTeamId: m.awayteamid,
+    homeScore: m.homescore,
+    awayScore: m.awayscore,
+    round: m.round,
+    status: m.status,
   } as Match;
 }
 
@@ -100,23 +112,30 @@ export async function createMatch(match: Omit<Match, 'id'>): Promise<Match> {
   const { data, error } = await supabase
     .from("matches")
     .insert({
-      homeTeamId: match.homeTeamId,
-      awayTeamId: match.awayTeamId,
-      homeScore: match.homeScore,
-      awayScore: match.awayScore,
+      hometeamid: match.homeTeamId,
+      awayteamid: match.awayTeamId,
+      homescore: match.homeScore,
+      awayscore: match.awayScore,
       round: match.round,
       status: match.status,
     })
-    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .single();
 
   if (error) {
     throw error;
   }
 
+  const m: any = data;
+
   return {
-    ...(data as any),
-    id: String((data as any).id),
+    id: String(m.id),
+    homeTeamId: m.hometeamid,
+    awayTeamId: m.awayteamid,
+    homeScore: m.homescore,
+    awayScore: m.awayscore,
+    round: m.round,
+    status: m.status,
   } as Match;
 }
 
@@ -126,9 +145,15 @@ export async function updateMatch(
 ): Promise<Match | null> {
   const { data, error } = await supabase
     .from("matches")
-    .update(updates)
+    .update({
+      // map our field names to DB column names
+      ...(updates.homeScore !== undefined ? { homescore: updates.homeScore } : {}),
+      ...(updates.awayScore !== undefined ? { awayscore: updates.awayScore } : {}),
+      ...(updates.status !== undefined ? { status: updates.status } : {}),
+      ...(updates.round !== undefined ? { round: updates.round } : {}),
+    })
     .eq("id", id)
-    .select("id, homeTeamId, awayTeamId, homeScore, awayScore, round, status")
+    .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .maybeSingle();
 
   if (error) {
@@ -137,9 +162,16 @@ export async function updateMatch(
 
   if (!data) return null;
 
+  const m: any = data;
+
   return {
-    ...(data as any),
-    id: String((data as any).id),
+    id: String(m.id),
+    homeTeamId: m.hometeamid,
+    awayTeamId: m.awayteamid,
+    homeScore: m.homescore,
+    awayScore: m.awayscore,
+    round: m.round,
+    status: m.status,
   } as Match;
 }
 
