@@ -11,6 +11,7 @@ export default async function HomePage() {
   ]);
 
   const playersByTeam = playersWithStats.reduce((acc, player) => {
+    if (player.teamId == null) return acc;
     if (!acc[player.teamId]) acc[player.teamId] = [];
     acc[player.teamId].push(player);
     return acc;

@@ -1,9 +1,12 @@
 import { supabase } from "./supabase";
 
+export type PlayerCategory = "regular" | "substitute";
+
 export interface Player {
   id: string;
   name: string;
-  teamId: string;
+  teamId: string | null;
+  category?: PlayerCategory;
 }
 
 export interface GameStats {
@@ -68,7 +71,7 @@ export interface PlayerWithStats extends Player {
 export async function getPlayers(): Promise<Player[]> {
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, teamid")
+    .select("id, name, teamid, category")
     .order("id");
 
   if (error) {
@@ -78,7 +81,8 @@ export async function getPlayers(): Promise<Player[]> {
   return (data ?? []).map((r: any) => ({
     id: r.id,
     name: r.name,
-    teamId: r.teamid,
+    teamId: r.teamid ?? null,
+    category: (r.category === "substitute" ? "substitute" : "regular") as PlayerCategory,
   })) as Player[];
 }
 
@@ -90,7 +94,7 @@ export async function getPlayer(id: string): Promise<Player | undefined> {
 export async function getPlayersByTeam(teamId: string): Promise<Player[]> {
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, teamid")
+    .select("id, name, teamid, category")
     .eq("teamid", teamId)
     .order("id");
 
@@ -101,8 +105,20 @@ export async function getPlayersByTeam(teamId: string): Promise<Player[]> {
   return (data ?? []).map((r: any) => ({
     id: r.id,
     name: r.name,
-    teamId: r.teamid,
+    teamId: r.teamid ?? null,
+    category: (r.category === "substitute" ? "substitute" : "regular") as PlayerCategory,
   })) as Player[];
+}
+
+/** Returns all players who can play in a match: home team, away team, and substitutes. */
+export async function getPlayersForMatch(homeTeamId: string, awayTeamId: string): Promise<Player[]> {
+  const all = await getPlayers();
+  return all.filter(
+    (p) =>
+      p.teamId === homeTeamId ||
+      p.teamId === awayTeamId ||
+      p.category === "substitute"
+  );
 }
 
 export async function getAllPlayerStats(): Promise<PlayerStats[]> {
@@ -251,26 +267,33 @@ export async function getPlayersWithStats(): Promise<PlayerWithStats[]> {
   });
 }
 
+const gameStatsRow = (playerId: string, gameStats: GameStats) => ({
+  playerid: playerId,
+  matchid: gameStats.matchId,
+  points: gameStats.points,
+  rebounds: gameStats.rebounds,
+  assists: gameStats.assists,
+  steals: gameStats.steals,
+  blocks: gameStats.blocks,
+  turnovers: gameStats.turnovers,
+  pf: gameStats.personalFouls,
+  twofgmade: gameStats.twoFgMade,
+  twofgattempts: gameStats.twoFgAttempts,
+  fgmade: gameStats.fgMade,
+  fgattempts: gameStats.fgAttempts,
+  threeptmade: gameStats.threePtMade,
+  threeptattempts: gameStats.threePtAttempts,
+  ftmade: gameStats.ftMade,
+  ftattempts: gameStats.ftAttempts,
+});
+
+/** Insert or update (upsert) game stats for a player so duplicate stats are not created. */
 export async function addGameStats(playerId: string, gameStats: GameStats): Promise<PlayerStats | null> {
-  const { error } = await supabase.from("player_game_stats").insert({
-    playerid: playerId,
-    matchid: gameStats.matchId,
-    points: gameStats.points,
-    rebounds: gameStats.rebounds,
-    assists: gameStats.assists,
-    steals: gameStats.steals,
-    blocks: gameStats.blocks,
-    turnovers: gameStats.turnovers,
-    pf: gameStats.personalFouls,
-    twofgmade: gameStats.twoFgMade,
-    twofgattempts: gameStats.twoFgAttempts,
-    fgmade: gameStats.fgMade,
-    fgattempts: gameStats.fgAttempts,
-    threeptmade: gameStats.threePtMade,
-    threeptattempts: gameStats.threePtAttempts,
-    ftmade: gameStats.ftMade,
-    ftattempts: gameStats.ftAttempts,
-  });
+  const { error } = await supabase
+    .from("player_game_stats")
+    .upsert(gameStatsRow(playerId, gameStats), {
+      onConflict: "playerid,matchid",
+    });
 
   if (error) {
     throw error;
@@ -278,4 +301,88 @@ export async function addGameStats(playerId: string, gameStats: GameStats): Prom
 
   const allStats = await getAllPlayerStats();
   return allStats.find((s) => s.playerId === playerId) ?? null;
+}
+
+export interface StatsRowForMatch {
+  playerId: string;
+  matchId: string;
+  game: GameStats;
+}
+
+/** Get all player-game stat rows for a given match (for admin edit/delete). */
+export async function getStatsRowsForMatch(matchId: string): Promise<StatsRowForMatch[]> {
+  const { data, error } = await supabase
+    .from("player_game_stats")
+    .select(
+      "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, pf, twofgmade, twofgattempts, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
+    )
+    .eq("matchid", matchId);
+
+  if (error) throw error;
+
+  return (data ?? []).map((r: any) => ({
+    playerId: r.playerid,
+    matchId: r.matchid,
+    game: {
+      matchId: r.matchid,
+      points: r.points,
+      rebounds: r.rebounds,
+      assists: r.assists,
+      steals: r.steals,
+      blocks: r.blocks,
+      turnovers: r.turnovers,
+      personalFouls: r.pf ?? 0,
+      twoFgMade: r.twofgmade ?? 0,
+      twoFgAttempts: r.twofgattempts ?? 0,
+      fgMade: r.fgmade,
+      fgAttempts: r.fgattempts,
+      threePtMade: r.threeptmade,
+      threePtAttempts: r.threeptattempts,
+      ftMade: r.ftmade,
+      ftAttempts: r.ftattempts,
+    },
+  }));
+}
+
+/** Update existing game stats for a player in a match. */
+export async function updateGameStats(
+  playerId: string,
+  matchId: string,
+  gameStats: Partial<Omit<GameStats, "matchId">>
+): Promise<void> {
+  const updatePayload: Record<string, number> = {};
+  if (gameStats.points !== undefined) updatePayload.points = gameStats.points;
+  if (gameStats.rebounds !== undefined) updatePayload.rebounds = gameStats.rebounds;
+  if (gameStats.assists !== undefined) updatePayload.assists = gameStats.assists;
+  if (gameStats.steals !== undefined) updatePayload.steals = gameStats.steals;
+  if (gameStats.blocks !== undefined) updatePayload.blocks = gameStats.blocks;
+  if (gameStats.turnovers !== undefined) updatePayload.turnovers = gameStats.turnovers;
+  if (gameStats.personalFouls !== undefined) updatePayload.pf = gameStats.personalFouls;
+  if (gameStats.twoFgMade !== undefined) updatePayload.twofgmade = gameStats.twoFgMade;
+  if (gameStats.twoFgAttempts !== undefined) updatePayload.twofgattempts = gameStats.twoFgAttempts;
+  if (gameStats.fgMade !== undefined) updatePayload.fgmade = gameStats.fgMade;
+  if (gameStats.fgAttempts !== undefined) updatePayload.fgattempts = gameStats.fgAttempts;
+  if (gameStats.threePtMade !== undefined) updatePayload.threeptmade = gameStats.threePtMade;
+  if (gameStats.threePtAttempts !== undefined) updatePayload.threeptattempts = gameStats.threePtAttempts;
+  if (gameStats.ftMade !== undefined) updatePayload.ftmade = gameStats.ftMade;
+  if (gameStats.ftAttempts !== undefined) updatePayload.ftattempts = gameStats.ftAttempts;
+
+  const { error } = await supabase
+    .from("player_game_stats")
+    .update(updatePayload)
+    .eq("playerid", playerId)
+    .eq("matchid", matchId);
+
+  if (error) throw error;
+}
+
+/** Delete game stats for a player in a specific match. */
+export async function deleteGameStats(playerId: string, matchId: string): Promise<void> {
+  const { error } = await supabase
+    .from("player_game_stats")
+    .delete()
+    .eq("playerid", playerId)
+    .eq("matchid", matchId);
+
+  if (error) throw error;
 }

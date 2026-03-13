@@ -12,9 +12,11 @@ export default async function PlayersPage() {
 
   const teamMap = new Map(teams.map((t) => [t.id, t.name]));
 
+  const SUBSTITUTE_KEY = "_substitute";
   const playersByTeam = playersWithStats.reduce((acc, player) => {
-    if (!acc[player.teamId]) acc[player.teamId] = [];
-    acc[player.teamId].push(player);
+    const key = player.teamId ?? SUBSTITUTE_KEY;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(player);
     return acc;
   }, {} as Record<string, typeof playersWithStats>);
 
@@ -40,7 +42,7 @@ export default async function PlayersPage() {
               {team.name}
             </div>
             <div className="divide-y divide-border">
-              {playersByTeam[team.id]?.map((player) => (
+              {(playersByTeam[team.id] ?? []).map((player) => (
                 <Link
                   key={player.id}
                   href={`/players/${player.id}`}
@@ -64,6 +66,36 @@ export default async function PlayersPage() {
             </div>
           </div>
         ))}
+        {(playersByTeam[SUBSTITUTE_KEY]?.length ?? 0) > 0 && (
+          <div className="bg-card-bg rounded-lg border border-border overflow-hidden">
+            <div className="bg-primary/80 text-black px-4 py-3 font-bold">
+              Pakaitiniai
+            </div>
+            <div className="divide-y divide-border">
+              {playersByTeam[SUBSTITUTE_KEY].map((player) => (
+                <Link
+                  key={player.id}
+                  href={`/players/${player.id}`}
+                  className="p-4 flex items-center gap-3 hover:bg-card-bg-hover transition-colors block"
+                >
+                  <div className="w-10 h-10 rounded-full bg-border flex items-center justify-center text-lg font-bold text-primary">
+                    {player.name.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{player.name}</p>
+                    <p className="text-xs text-text-muted">
+                      {player.gamesPlayed} rung. | {player.avgPoints} TŠK
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-black text-primary">{player.eff}</p>
+                    <p className="text-xs text-text-muted">EFF</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-card-bg rounded-lg border border-border overflow-hidden">
@@ -99,7 +131,7 @@ export default async function PlayersPage() {
                       {player.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-text-muted text-sm">{teamMap.get(player.teamId)}</td>
+                  <td className="px-4 py-3 text-text-muted text-sm">{player.teamId ? teamMap.get(player.teamId) : "Pakaitinis"}</td>
                   <td className="px-4 py-3 text-center text-text-muted">{player.gamesPlayed}</td>
                   <td className="px-4 py-3 text-center">
                     <span className="font-black text-primary text-lg">{player.eff}</span>

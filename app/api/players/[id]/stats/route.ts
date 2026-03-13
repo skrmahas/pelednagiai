@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPlayerStats, addGameStats } from "@/lib/players";
+import { getPlayerStats, addGameStats, updateGameStats, deleteGameStats } from "@/lib/players";
 import { isAuthenticated } from "@/lib/auth";
 
 export async function GET(
@@ -84,4 +84,77 @@ export async function POST(
   }
 
   return NextResponse.json(stats, { status: 201 });
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authenticated = await isAuthenticated();
+  if (!authenticated) {
+    return NextResponse.json({ error: "Neautorizuota" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await request.json();
+  const { matchId, ...rest } = body;
+
+  if (!matchId) {
+    return NextResponse.json(
+      { error: "Rungtynių ID privalomas" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    await updateGameStats(id, matchId, {
+      points: rest.points,
+      rebounds: rest.rebounds,
+      assists: rest.assists,
+      steals: rest.steals,
+      blocks: rest.blocks,
+      turnovers: rest.turnovers,
+      personalFouls: rest.personalFouls,
+      twoFgMade: rest.twoFgMade,
+      twoFgAttempts: rest.twoFgAttempts,
+      fgMade: rest.fgMade,
+      fgAttempts: rest.fgAttempts,
+      threePtMade: rest.threePtMade,
+      threePtAttempts: rest.threePtAttempts,
+      ftMade: rest.ftMade,
+      ftAttempts: rest.ftAttempts,
+    });
+    const stats = await getPlayerStats(id);
+    return NextResponse.json(stats ?? { playerId: id, games: [], totals: {} });
+  } catch (e) {
+    return NextResponse.json({ error: "Klaida atnaujinant" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authenticated = await isAuthenticated();
+  if (!authenticated) {
+    return NextResponse.json({ error: "Neautorizuota" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  const matchId = searchParams.get("matchId");
+
+  if (!matchId) {
+    return NextResponse.json(
+      { error: "Rungtynių ID privalomas (query: matchId)" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    await deleteGameStats(id, matchId);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: "Klaida trinant" }, { status: 500 });
+  }
 }

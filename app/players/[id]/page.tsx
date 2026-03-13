@@ -15,7 +15,7 @@ export default async function PlayerProfilePage({ params }: Props) {
     notFound();
   }
 
-  const team = await getTeam(player.teamId);
+  const team = player.teamId ? await getTeam(player.teamId) : null;
   const matches = await getMatches();
 
   const gamesPlayed = stats?.games.length || 0;
@@ -52,7 +52,7 @@ export default async function PlayerProfilePage({ params }: Props) {
             </div>
             <div>
               <h1 className="text-3xl font-black">{player.name}</h1>
-              <p className="text-black/70 font-medium">{team?.name || "—"}</p>
+              <p className="text-black/70 font-medium">{player.category === "substitute" ? "Pakaitinis" : (team?.name ?? "—")}</p>
             </div>
           </div>
         </div>

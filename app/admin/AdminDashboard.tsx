@@ -8,6 +8,8 @@ import type { Player } from "@/lib/players";
 
 interface PlayerStatInput {
   playerId: string;
+  /** For substitutes: which team they are playing for in this match. */
+  playsForTeamId?: string;
   points: string;
   rebounds: string;
   assists: string;
@@ -78,14 +80,24 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
   } | null>(null);
   const [savingStats, setSavingStats] = useState(false);
 
+  const [manageStatsMatchId, setManageStatsMatchId] = useState("");
+  const [manageStatsRows, setManageStatsRows] = useState<Array<{ playerId: string; matchId: string; game: Record<string, number> }>>([]);
+  const [loadingManageStats, setLoadingManageStats] = useState(false);
+  const [editingStatRow, setEditingStatRow] = useState<{ playerId: string; matchId: string } | null>(null);
+  const [editStatForm, setEditStatForm] = useState<Record<string, number>>({});
+
   const teamMap = new Map(teams.map((t) => [t.id, t.name]));
 
   function initializePlayerStats(match: Match): PlayerStatInput[] {
     const matchPlayers = players.filter(
-      p => p.teamId === match.homeTeamId || p.teamId === match.awayTeamId
+      (p) =>
+        p.teamId === match.homeTeamId ||
+        p.teamId === match.awayTeamId ||
+        p.category === "substitute"
     );
-    return matchPlayers.map(p => ({
+    return matchPlayers.map((p) => ({
       playerId: p.id,
+      playsForTeamId: p.category === "substitute" ? match.homeTeamId : undefined,
       points: "0",
       rebounds: "0",
       assists: "0",
@@ -108,8 +120,18 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
     if (!statsPopup) return;
     setStatsPopup({
       ...statsPopup,
-      playerStats: statsPopup.playerStats.map(ps =>
+      playerStats: statsPopup.playerStats.map((ps) =>
         ps.playerId === playerId ? { ...ps, [field]: value } : ps
+      ),
+    });
+  }
+
+  function setPlaysForTeam(playerId: string, teamId: string) {
+    if (!statsPopup) return;
+    setStatsPopup({
+      ...statsPopup,
+      playerStats: statsPopup.playerStats.map((ps) =>
+        ps.playerId === playerId ? { ...ps, playsForTeamId: teamId } : ps
       ),
     });
   }
@@ -392,9 +414,14 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
   const playedMatches = matches.filter(m => m.status === 'played');
   const existingWagerMatchIds = new Set(wagers.map(w => w.matchId));
 
-  const selectedMatch = matches.find(m => m.id === statsMatchId);
-  const matchPlayers = selectedMatch 
-    ? players.filter(p => p.teamId === selectedMatch.homeTeamId || p.teamId === selectedMatch.awayTeamId)
+  const selectedMatch = matches.find((m) => m.id === statsMatchId);
+  const matchPlayers = selectedMatch
+    ? players.filter(
+        (p) =>
+          p.teamId === selectedMatch.homeTeamId ||
+          p.teamId === selectedMatch.awayTeamId ||
+          p.category === "substitute"
+      )
     : [];
 
   return (
@@ -637,7 +664,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                   <option value="">Pasirinkite žaidėją</option>
                   {matchPlayers.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({teamMap.get(p.teamId)})
+                      {p.name} ({p.category === "substitute" ? "Pakaitinis" : teamMap.get(p.teamId ?? "")})
                     </option>
                   ))}
                 </select>
@@ -810,6 +837,148 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                 </button>
               </div>
             )}
+
+            <div className="mt-8 p-4 bg-background rounded-lg border border-border">
+              <h3 className="font-bold mb-3">Taisyti arba trinti rungtynių statistiką</h3>
+              <p className="text-sm text-text-muted mb-3">
+                Pasirinkite rungtynes ir įkelkite įrašytą statistiką, tada redaguokite arba ištrinkite žaidėjo įrašą (kad nebūtų dublikatų).
+              </p>
+              <div className="flex flex-wrap gap-2 items-end mb-4">
+                <div className="min-w-[200px]">
+                  <label className="block text-xs text-text-muted mb-1">Rungtynės</label>
+                  <select
+                    value={manageStatsMatchId}
+                    onChange={(e) => { setManageStatsMatchId(e.target.value); setManageStatsRows([]); setEditingStatRow(null); }}
+                    className="w-full px-3 py-2 border border-border rounded bg-card-bg"
+                  >
+                    <option value="">—</option>
+                    {playedMatches.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        #{m.id}: {teamMap.get(m.homeTeamId)} {m.homeScore}:{m.awayScore} {teamMap.get(m.awayTeamId)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!manageStatsMatchId) return;
+                    setLoadingManageStats(true);
+                    try {
+                      const res = await fetch(`/api/matches/${manageStatsMatchId}/stats`);
+                      if (res.ok) {
+                        const data = await res.json();
+                        setManageStatsRows(data);
+                        setEditingStatRow(null);
+                      }
+                    } finally {
+                      setLoadingManageStats(false);
+                    }
+                  }}
+                  disabled={!manageStatsMatchId || loadingManageStats}
+                  className="px-4 py-2 bg-primary text-black rounded font-bold hover:bg-primary-dark disabled:opacity-50"
+                >
+                  {loadingManageStats ? "..." : "Įkelti"}
+                </button>
+              </div>
+              {manageStatsRows.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#252525]">
+                      <tr>
+                        <th className="px-2 py-2 text-left text-text-muted">Žaidėjas</th>
+                        <th className="px-2 py-2 text-center text-text-muted">TŠK</th>
+                        <th className="px-2 py-2 text-center text-text-muted">ATŠ</th>
+                        <th className="px-2 py-2 text-center text-text-muted">REZ</th>
+                        <th className="px-2 py-2 text-center text-text-muted">PER</th>
+                        <th className="px-2 py-2 text-center text-text-muted">BLK</th>
+                        <th className="px-2 py-2 text-center text-text-muted">KLD</th>
+                        <th className="px-2 py-2 text-right text-text-muted">Veiksmai</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {manageStatsRows.map((row) => {
+                        const player = players.find((p) => p.id === row.playerId);
+                        const isEditing = editingStatRow?.playerId === row.playerId && editingStatRow?.matchId === row.matchId;
+                        return (
+                          <tr key={`${row.playerId}-${row.matchId}`} className="hover:bg-card-bg-hover">
+                            <td className="px-2 py-2 font-medium">{player?.name ?? row.playerId}</td>
+                            {!isEditing ? (
+                              <>
+                                <td className="px-2 py-2 text-center">{row.game.points}</td>
+                                <td className="px-2 py-2 text-center">{row.game.rebounds}</td>
+                                <td className="px-2 py-2 text-center">{row.game.assists}</td>
+                                <td className="px-2 py-2 text-center">{row.game.steals}</td>
+                                <td className="px-2 py-2 text-center">{row.game.blocks}</td>
+                                <td className="px-2 py-2 text-center">{row.game.turnovers}</td>
+                                <td className="px-2 py-2 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingStatRow({ playerId: row.playerId, matchId: row.matchId });
+                                      setEditStatForm({ ...row.game });
+                                    }}
+                                    className="px-2 py-1 mr-1 bg-primary text-black rounded text-xs font-bold"
+                                  >
+                                    Redaguoti
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (!confirm(`Ištrinti ${player?.name ?? row.playerId} statistiką šioms rungtynėms?`)) return;
+                                      const res = await fetch(`/api/players/${row.playerId}/stats?matchId=${encodeURIComponent(row.matchId)}`, { method: "DELETE" });
+                                      if (res.ok) setManageStatsRows((prev) => prev.filter((r) => r.playerId !== row.playerId || r.matchId !== row.matchId));
+                                    }}
+                                    className="px-2 py-1 bg-danger text-white rounded text-xs font-bold"
+                                  >
+                                    Trinti
+                                  </button>
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td colSpan={6} className="px-2 py-2">
+                                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                    <input type="number" min={0} value={editStatForm.points ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, points: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="TŠK" />
+                                    <input type="number" min={0} value={editStatForm.rebounds ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, rebounds: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="ATŠ" />
+                                    <input type="number" min={0} value={editStatForm.assists ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, assists: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="REZ" />
+                                    <input type="number" min={0} value={editStatForm.steals ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, steals: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="PER" />
+                                    <input type="number" min={0} value={editStatForm.blocks ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, blocks: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="BLK" />
+                                    <input type="number" min={0} value={editStatForm.turnovers ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, turnovers: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="KLD" />
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      const res = await fetch(`/api/players/${row.playerId}/stats`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ matchId: row.matchId, ...editStatForm }),
+                                      });
+                                      if (res.ok) {
+                                        setManageStatsRows((prev) => prev.map((r) => r.playerId === row.playerId && r.matchId === row.matchId ? { ...r, game: editStatForm } : r));
+                                        setEditingStatRow(null);
+                                      }
+                                    }}
+                                    className="px-2 py-1 mr-1 bg-success text-white rounded text-xs font-bold"
+                                  >
+                                    Išsaugoti
+                                  </button>
+                                  <button type="button" onClick={() => setEditingStatRow(null)} className="px-2 py-1 bg-border text-text-muted rounded text-xs">
+                                    Atšaukti
+                                  </button>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1070,10 +1239,11 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             </div>
 
             <div className="p-4 space-y-6">
-              {[statsPopup.match.homeTeamId, statsPopup.match.awayTeamId].map(teamId => {
-                const teamPlayers = statsPopup.playerStats.filter(ps => {
-                  const player = players.find(p => p.id === ps.playerId);
-                  return player?.teamId === teamId;
+              {[statsPopup.match.homeTeamId, statsPopup.match.awayTeamId].map((teamId) => {
+                const teamPlayers = statsPopup.playerStats.filter((ps) => {
+                  const player = players.find((p) => p.id === ps.playerId);
+                  const effectiveTeamId = ps.playsForTeamId ?? player?.teamId;
+                  return effectiveTeamId === teamId;
                 });
 
                 return (
@@ -1081,13 +1251,28 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                     <h3 className="font-bold text-primary border-b border-border pb-2">
                       {teamMap.get(teamId)}
                     </h3>
-                    {teamPlayers.map(ps => {
-                      const player = players.find(p => p.id === ps.playerId);
+                    {teamPlayers.map((ps) => {
+                      const player = players.find((p) => p.id === ps.playerId);
                       if (!player) return null;
 
                       return (
                         <div key={ps.playerId} className="bg-background rounded-lg border border-border p-4">
-                          <h4 className="font-bold mb-3">{player.name}</h4>
+                          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                            <h4 className="font-bold">{player.name}</h4>
+                            {player.category === "substitute" && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-text-muted">Žaidė už:</span>
+                                <select
+                                  value={ps.playsForTeamId ?? statsPopup.match.homeTeamId}
+                                  onChange={(e) => setPlaysForTeam(ps.playerId, e.target.value)}
+                                  className="px-2 py-1 border border-border rounded bg-card-bg text-sm"
+                                >
+                                  <option value={statsPopup.match.homeTeamId}>{teamMap.get(statsPopup.match.homeTeamId)}</option>
+                                  <option value={statsPopup.match.awayTeamId}>{teamMap.get(statsPopup.match.awayTeamId)}</option>
+                                </select>
+                              </div>
+                            )}
+                          </div>
                           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                             <div>
                               <label className="block text-xs text-text-muted mb-1">PTS</label>
