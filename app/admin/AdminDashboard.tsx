@@ -92,12 +92,22 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
 
   const teamMap = new Map(teams.map((t) => [t.id, t.name]));
 
+  /** Mantas Briuderis is only available as substitute for Pride police. */
+  function isSubstituteAvailableForMatch(p: Player, match: Match): boolean {
+    if (p.category !== "substitute") return true;
+    const homeName = teamMap.get(match.homeTeamId);
+    const awayName = teamMap.get(match.awayTeamId);
+    const hasPridePolice = homeName === "Pride police" || awayName === "Pride police";
+    if (p.name === "Mantas Briuderis" || p.id === "mantas-briuderis") return hasPridePolice;
+    return true;
+  }
+
   function initializePlayerStats(match: Match): PlayerStatInput[] {
     const matchPlayers = players.filter(
       (p) =>
         p.teamId === match.homeTeamId ||
         p.teamId === match.awayTeamId ||
-        p.category === "substitute"
+        (p.category === "substitute" && isSubstituteAvailableForMatch(p, match))
     );
     return matchPlayers.map((p) => ({
       playerId: p.id,
@@ -458,7 +468,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
         (p) =>
           p.teamId === selectedMatch.homeTeamId ||
           p.teamId === selectedMatch.awayTeamId ||
-          p.category === "substitute"
+          (p.category === "substitute" && isSubstituteAvailableForMatch(p, selectedMatch))
       )
     : [];
 
@@ -1486,21 +1496,4 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             <div className="sticky bottom-0 bg-card-bg border-t border-border p-4 flex gap-3">
               <button
                 onClick={() => setStatsPopup(null)}
-                className="flex-1 px-4 py-3 bg-border text-text-muted rounded font-bold hover:bg-card-bg-hover transition-colors"
-              >
-                Praleisti
-              </button>
-              <button
-                onClick={saveAllStats}
-                disabled={savingStats}
-                className="flex-1 px-4 py-3 bg-primary text-black rounded font-bold hover:bg-primary-dark transition-colors disabled:opacity-50"
-              >
-                {savingStats ? "Saugoma..." : "IŠSAUGOTI STATISTIKĄ"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                classNam

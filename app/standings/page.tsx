@@ -34,7 +34,15 @@ export default async function StandingsPage() {
                   className="hover:bg-card-bg-hover transition-colors"
                 >
                   <td className="px-4 py-3">
-                    <span className={`font-black ${index < 3 ? 'text-primary' : 'text-text-muted'}`}>
+                    <span
+                      className={`font-black ${
+                        index < 4
+                          ? "text-orange-500"
+                          : index === 4
+                            ? "text-gray-400"
+                            : "text-text-muted"
+                      }`}
+                    >
                       {index + 1}
                     </span>
                   </td>

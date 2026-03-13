@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getMatches, getTeams } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -56,9 +57,10 @@ export default async function SchedulePage() {
                   const isPlayed = match.status === "played";
 
                   return (
-                    <div
+                    <Link
                       key={match.id}
-                      className="p-4 flex items-center justify-between gap-2 hover:bg-card-bg-hover transition-colors"
+                      href={`/schedule/${match.id}`}
+                      className="block p-4 flex items-center justify-between gap-2 hover:bg-card-bg-hover transition-colors cursor-pointer"
                     >
                       <div className="flex-1 text-right">
                         <span className="font-semibold text-sm sm:text-base">{homeName}</span>
@@ -83,7 +85,7 @@ export default async function SchedulePage() {
                       <div className="flex-1 text-left">
                         <span className="font-semibold text-sm sm:text-base">{awayName}</span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
