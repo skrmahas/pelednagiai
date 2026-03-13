@@ -1496,4 +1496,21 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             <div className="sticky bottom-0 bg-card-bg border-t border-border p-4 flex gap-3">
               <button
                 onClick={() => setStatsPopup(null)}
-                classNam
+                className="flex-1 px-4 py-3 bg-border text-text-muted rounded font-bold hover:bg-card-bg-hover transition-colors"
+              >
+                Praleisti
+              </button>
+              <button
+                onClick={saveAllStats}
+                disabled={savingStats}
+                className="flex-1 px-4 py-3 bg-primary text-black rounded font-bold hover:bg-primary-dark transition-colors disabled:opacity-50"
+              >
+                {savingStats ? "Saugoma..." : "IŠSAUGOTI STATISTIKĄ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
