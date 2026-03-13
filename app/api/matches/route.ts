@@ -30,14 +30,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const match = await createMatch({
-    homeTeamId,
-    awayTeamId,
-    homeScore: null,
-    awayScore: null,
-    round: round || 1,
-    status: "scheduled",
-  });
-
-  return NextResponse.json(match, { status: 201 });
+  try {
+    const match = await createMatch({
+      homeTeamId,
+      awayTeamId,
+      homeScore: null,
+      awayScore: null,
+      round: round || 1,
+      status: "scheduled",
+    });
+    return NextResponse.json(match, { status: 201 });
+  } catch (e: any) {
+    const message =
+      typeof e?.message === "string"
+        ? e.message
+        : "Klaida kuriant rungtynes (patikrinkite ar nėra dublio ar neteisingų duomenų)";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

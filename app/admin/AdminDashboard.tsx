@@ -10,6 +10,10 @@ interface PlayerStatInput {
   playerId: string;
   /** For substitutes: which team they are playing for in this match. */
   playsForTeamId?: string;
+  /** Whether this player actually played in the match. */
+  didPlay: boolean;
+  /** For substitutes: player they replaced (so that player's stats row is skipped). */
+  replacesPlayerId?: string | null;
   points: string;
   rebounds: string;
   assists: string;
@@ -98,6 +102,8 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
     return matchPlayers.map((p) => ({
       playerId: p.id,
       playsForTeamId: p.category === "substitute" ? match.homeTeamId : undefined,
+      didPlay: p.category === "substitute" ? false : true,
+      replacesPlayerId: null,
       points: "0",
       rebounds: "0",
       assists: "0",
@@ -136,13 +142,45 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
     });
   }
 
+  function setDidPlay(playerId: string, didPlay: boolean) {
+    if (!statsPopup) return;
+    setStatsPopup({
+      ...statsPopup,
+      playerStats: statsPopup.playerStats.map((ps) =>
+        ps.playerId === playerId ? { ...ps, didPlay } : ps
+      ),
+    });
+  }
+
+  function setReplacesPlayer(playerId: string, replacesPlayerId: string | null) {
+    if (!statsPopup) return;
+    setStatsPopup({
+      ...statsPopup,
+      playerStats: statsPopup.playerStats.map((ps) =>
+        ps.playerId === playerId ? { ...ps, replacesPlayerId } : ps
+      ),
+    });
+  }
+
   async function saveAllStats() {
     if (!statsPopup) return;
     setSavingStats(true);
     setError("");
 
     try {
+      // If a substitute played instead of someone, we skip saving stats for the replaced player
+      const replacedIds = new Set(
+        statsPopup.playerStats
+          .filter((ps) => ps.didPlay && ps.replacesPlayerId)
+          .map((ps) => ps.replacesPlayerId as string)
+      );
+
       for (const ps of statsPopup.playerStats) {
+        // Skip players explicitly marked as not having played
+        if (!ps.didPlay) continue;
+        // Skip players who were substituted out
+        if (replacedIds.has(ps.playerId)) continue;
+
         await fetch(`/api/players/${ps.playerId}/stats`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1245,6 +1283,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                   const effectiveTeamId = ps.playsForTeamId ?? player?.teamId;
                   return effectiveTeamId === teamId;
                 });
+                const teamRoster = players.filter(
+                  (p) => p.teamId === teamId && p.category !== "substitute"
+                );
 
                 return (
                   <div key={teamId} className="space-y-3">
@@ -1258,18 +1299,54 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                       return (
                         <div key={ps.playerId} className="bg-background rounded-lg border border-border p-4">
                           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                            <h4 className="font-bold">{player.name}</h4>
-                            {player.category === "substitute" && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-text-muted">Žaidė už:</span>
-                                <select
-                                  value={ps.playsForTeamId ?? statsPopup.match.homeTeamId}
-                                  onChange={(e) => setPlaysForTeam(ps.playerId, e.target.value)}
-                                  className="px-2 py-1 border border-border rounded bg-card-bg text-sm"
-                                >
-                                  <option value={statsPopup.match.homeTeamId}>{teamMap.get(statsPopup.match.homeTeamId)}</option>
-                                  <option value={statsPopup.match.awayTeamId}>{teamMap.get(statsPopup.match.awayTeamId)}</option>
-                                </select>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <h4 className="font-bold">{player.name}</h4>
+                              <label className="flex items-center gap-1 text-xs text-text-muted">
+                                <input
+                                  type="checkbox"
+                                  checked={ps.didPlay}
+                                  onChange={(e) => setDidPlay(ps.playerId, e.target.checked)}
+                                />
+                                <span>Žaidė</span>
+                              </label>
+                            </div>
+                            {player.category === "substitute" && ps.didPlay && (
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-text-muted">Žaidė už:</span>
+                                  <select
+                                    value={ps.playsForTeamId ?? statsPopup.match.homeTeamId}
+                                    onChange={(e) => setPlaysForTeam(ps.playerId, e.target.value)}
+                                    className="px-2 py-1 border border-border rounded bg-card-bg text-sm"
+                                  >
+                                    <option value={statsPopup.match.homeTeamId}>
+                                      {teamMap.get(statsPopup.match.homeTeamId)}
+                                    </option>
+                                    <option value={statsPopup.match.awayTeamId}>
+                                      {teamMap.get(statsPopup.match.awayTeamId)}
+                                    </option>
+                                  </select>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-text-muted">Vietoj:</span>
+                                  <select
+                                    value={ps.replacesPlayerId ?? ""}
+                                    onChange={(e) =>
+                                      setReplacesPlayer(
+                                        ps.playerId,
+                                        e.target.value || null
+                                      )
+                                    }
+                                    className="px-2 py-1 border border-border rounded bg-card-bg text-sm"
+                                  >
+                                    <option value="">—</option>
+                                    {teamRoster.map((tp) => (
+                                      <option key={tp.id} value={tp.id}>
+                                        {tp.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
                               </div>
                             )}
                           </div>
