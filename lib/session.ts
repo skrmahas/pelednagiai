@@ -20,6 +20,12 @@ function fromBase64Url(value: string): Uint8Array {
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
 async function importSigningKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
@@ -45,7 +51,7 @@ async function verifyValueSignature(
   return crypto.subtle.verify(
     "HMAC",
     key,
-    fromBase64Url(signature),
+    toArrayBuffer(fromBase64Url(signature)),
     encoder.encode(value)
   );
 }
