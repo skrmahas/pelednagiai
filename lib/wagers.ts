@@ -158,7 +158,7 @@ export async function updateWager(
       description: updates.description ?? null,
     })
     .eq("id", id)
-    .select<SupabaseWagerRow>(
+    .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .maybeSingle();
