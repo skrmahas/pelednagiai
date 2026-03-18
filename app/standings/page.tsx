@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getStandings } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +47,14 @@ export default async function StandingsPage() {
                       {index + 1}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-semibold">{standing.teamName}</td>
+                  <td className="px-4 py-3 font-semibold">
+                    <Link
+                      href={`/teams/${standing.teamId}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {standing.teamName}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-center text-text-muted">{standing.played}</td>
                   <td className="px-4 py-3 text-center text-success font-bold">
                     {standing.wins}

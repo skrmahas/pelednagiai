@@ -11,8 +11,19 @@ export default async function WagersPage() {
     getWagers(),
   ]);
 
-  const scheduledMatches = matches.filter(m => m.status === 'scheduled');
   const teamMap = new Map(teams.map((t) => [t.id, t.name]));
+  const activeWagers = wagers.filter((wager) => {
+    const match = matches.find((entry) => entry.id === wager.matchId);
+    return match?.status === "scheduled";
+  });
+  const settledWagers = wagers.filter((wager) => {
+    const match = matches.find((entry) => entry.id === wager.matchId);
+    return match?.status === "played";
+  });
+  const totalPool = wagers.reduce(
+    (sum, wager) => sum + wager.bets.reduce((betSum, bet) => betSum + bet.amount, 0),
+    0
+  );
 
   const allBets = wagers.flatMap(wager => {
     const match = matches.find(m => m.id === wager.matchId);
@@ -58,13 +69,30 @@ export default async function WagersPage() {
         <span className="text-primary">LAŽYBOS</span>
       </h1>
 
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-border bg-card-bg p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Atviros rinkos</p>
+          <p className="mt-2 text-3xl font-black">{activeWagers.length}</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card-bg p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Visi statymai</p>
+          <p className="mt-2 text-3xl font-black">{allBets.length}</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card-bg p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Bendras bankas</p>
+          <p className="mt-2 text-3xl font-black text-primary">€{totalPool.toFixed(2)}</p>
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
+          <div className="rounded-2xl border border-border bg-card-bg p-4 text-sm text-text-muted">
+            Statymai priimami tik iki rungtynių pradžios. Koeficientai rodo rinkos vertinimą, o kiekvienoje rinkoje matosi realus pinigų pasiskirstymas tarp komandų.
+          </div>
           <WagersList 
             matches={matches} 
             teams={teams} 
             wagers={wagers}
-            scheduledMatches={scheduledMatches}
           />
         </div>
 
@@ -151,6 +179,12 @@ export default async function WagersPage() {
           {allBets.length === 0 && (
             <div className="bg-card-bg rounded-lg border border-border p-6 text-center">
               <p className="text-text-muted">Statymų dar nėra</p>
+            </div>
+          )}
+
+          {settledWagers.length > 0 && (
+            <div className="bg-card-bg rounded-lg border border-border p-4 text-sm text-text-muted">
+              Užbaigtų rinkų: <span className="font-bold text-white">{settledWagers.length}</span>
             </div>
           )}
         </div>

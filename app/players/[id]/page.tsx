@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPlayer, getPlayerStats, calculateEFF } from "@/lib/players";
-import { getTeam, getMatches } from "@/lib/data";
+import { getMatches, getTeams } from "@/lib/data";
+import { getOpponentId, getOpponentScore, getTeamScore, sortMatchesChronologically } from "@/lib/league";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -9,14 +10,19 @@ interface Props {
 
 export default async function PlayerProfilePage({ params }: Props) {
   const { id } = await params;
-  const [player, stats] = await Promise.all([getPlayer(id), getPlayerStats(id)]);
+  const [player, stats, matches, teams] = await Promise.all([
+    getPlayer(id),
+    getPlayerStats(id),
+    getMatches(),
+    getTeams(),
+  ]);
 
   if (!player) {
     notFound();
   }
 
-  const team = player.teamId ? await getTeam(player.teamId) : null;
-  const matches = await getMatches();
+  const teamMap = new Map(teams.map((team) => [team.id, team.name]));
+  const team = player.teamId ? teams.find((entry) => entry.id === player.teamId) ?? null : null;
 
   const gamesPlayed = stats?.games.length || 0;
   const t = stats?.totals || {
@@ -37,6 +43,43 @@ export default async function PlayerProfilePage({ params }: Props) {
   const fgPct = t.fgAttempts > 0 ? ((t.fgMade / t.fgAttempts) * 100).toFixed(1) : "0.0";
   const threePtPct = t.threePtAttempts > 0 ? ((t.threePtMade / t.threePtAttempts) * 100).toFixed(1) : "0.0";
   const ftPct = t.ftAttempts > 0 ? ((t.ftMade / t.ftAttempts) * 100).toFixed(1) : "0.0";
+  const matchMap = new Map(sortMatchesChronologically(matches).map((match) => [match.id, match]));
+  const gameLog = (stats?.games ?? [])
+    .map((game) => {
+      const match = matchMap.get(game.matchId);
+      if (!match) {
+        return { game, match: null };
+      }
+
+      const opponentName = player.teamId
+        ? teamMap.get(getOpponentId(player.teamId, match)) ?? "Nežinoma komanda"
+        : "Pakaitinio rungtynės";
+      const teamScore = player.teamId ? getTeamScore(player.teamId, match) : null;
+      const opponentScore = player.teamId ? getOpponentScore(player.teamId, match) : null;
+      const result =
+        teamScore === null || opponentScore === null
+          ? "—"
+          : teamScore > opponentScore
+            ? "P"
+            : teamScore < opponentScore
+              ? "Pr"
+              : "L";
+
+      return {
+        game,
+        match,
+        opponentName,
+        teamScore,
+        opponentScore,
+        result,
+      };
+    })
+    .sort((a, b) => {
+      const aRound = a.match?.round ?? 0;
+      const bRound = b.match?.round ?? 0;
+      if (bRound !== aRound) return bRound - aRound;
+      return Number(b.match?.id ?? 0) - Number(a.match?.id ?? 0);
+    });
 
   return (
     <div className="space-y-6">
@@ -52,7 +95,18 @@ export default async function PlayerProfilePage({ params }: Props) {
             </div>
             <div>
               <h1 className="text-3xl font-black">{player.name}</h1>
-              <p className="text-black/70 font-medium">{player.category === "substitute" ? "Pakaitinis" : (team?.name ?? "—")}</p>
+              {player.category === "substitute" ? (
+                <p className="text-black/70 font-medium">Pakaitinis</p>
+              ) : team ? (
+                <Link
+                  href={`/teams/${team.id}`}
+                  className="text-black/70 font-medium hover:text-black transition-colors"
+                >
+                  {team.name}
+                </Link>
+              ) : (
+                <p className="text-black/70 font-medium">—</p>
+              )}
             </div>
           </div>
         </div>
@@ -114,12 +168,59 @@ export default async function PlayerProfilePage({ params }: Props) {
         <div className="bg-primary text-black px-4 py-3 font-bold">
           STATISTIKA PAGAL RUNGTYNES
         </div>
-        {stats && stats.games.length > 0 ? (
-          <div className="overflow-x-auto">
+        {gameLog.length > 0 ? (
+          <>
+            <div className="grid gap-3 p-4 md:hidden">
+              {gameLog.map(({ game, match, opponentName, teamScore, opponentScore, result }, idx) => (
+                <Link
+                  key={`${game.matchId}-${idx}`}
+                  href={match ? `/schedule/${match.id}` : "#"}
+                  className="block rounded-xl border border-border bg-background p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] text-text-muted">
+                        {match ? `${match.round}. turas` : `Rungtynės #${game.matchId}`}
+                      </p>
+                      <p className="mt-1 font-bold">vs {opponentName ?? "—"}</p>
+                      <p className="text-sm text-text-muted">
+                        {result} {teamScore ?? "—"} : {opponentScore ?? "—"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-primary">{game.points}</p>
+                      <p className="text-xs text-text-muted">TŠK</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
+                    <div className="rounded-lg border border-border px-2 py-2">
+                      <p className="font-bold">{game.rebounds}</p>
+                      <p className="text-xs text-text-muted">ATŠ</p>
+                    </div>
+                    <div className="rounded-lg border border-border px-2 py-2">
+                      <p className="font-bold">{game.assists}</p>
+                      <p className="text-xs text-text-muted">REZ</p>
+                    </div>
+                    <div className="rounded-lg border border-border px-2 py-2">
+                      <p className="font-bold">{game.steals}</p>
+                      <p className="text-xs text-text-muted">PER</p>
+                    </div>
+                    <div className="rounded-lg border border-border px-2 py-2">
+                      <p className="font-bold">{game.blocks}</p>
+                      <p className="text-xs text-text-muted">BLK</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-sm">
               <thead className="bg-[#252525]">
                 <tr>
-                  <th className="px-3 py-2 text-left text-text-muted">Rungtynės</th>
+                  <th className="px-3 py-2 text-left text-text-muted">Turas</th>
+                  <th className="px-3 py-2 text-left text-text-muted">Varžovas</th>
+                  <th className="px-3 py-2 text-center text-text-muted">Rez.</th>
                   <th className="px-3 py-2 text-center text-text-muted">TŠK</th>
                   <th className="px-3 py-2 text-center text-text-muted">ATŠ</th>
                   <th className="px-3 py-2 text-center text-text-muted">REZ</th>
@@ -133,11 +234,28 @@ export default async function PlayerProfilePage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {stats.games.map((game, idx) => {
-                  const match = matches.find(m => m.id === game.matchId);
+                {gameLog.map(({ game, match, opponentName, teamScore, opponentScore, result }, idx) => {
                   return (
                     <tr key={idx} className="hover:bg-card-bg-hover">
-                      <td className="px-3 py-2">#{game.matchId}</td>
+                      <td className="px-3 py-2">
+                        <Link href={match ? `/schedule/${match.id}` : "#"} className="hover:text-primary">
+                          {match ? `${match.round}. turas` : `#${game.matchId}`}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2">{opponentName ?? "—"}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span
+                          className={
+                            result === "P"
+                              ? "text-success font-bold"
+                              : result === "Pr"
+                                ? "text-danger font-bold"
+                                : "text-text-muted font-bold"
+                          }
+                        >
+                          {result} {teamScore ?? "—"}:{opponentScore ?? "—"}
+                        </span>
+                      </td>
                       <td className="px-3 py-2 text-center font-bold text-primary">{game.points}</td>
                       <td className="px-3 py-2 text-center">{game.rebounds}</td>
                       <td className="px-3 py-2 text-center">{game.assists}</td>
@@ -153,7 +271,8 @@ export default async function PlayerProfilePage({ params }: Props) {
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         ) : (
           <div className="p-8 text-center text-text-muted">
             Kol kas statistikos nėra

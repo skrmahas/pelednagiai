@@ -8,10 +8,9 @@ interface Props {
   matches: Match[];
   teams: Team[];
   wagers: Wager[];
-  scheduledMatches: Match[];
 }
 
-export default function WagersList({ matches, teams, wagers: initialWagers, scheduledMatches }: Props) {
+export default function WagersList({ matches, teams, wagers: initialWagers }: Props) {
   const [wagers, setWagers] = useState(initialWagers);
   const [selectedWager, setSelectedWager] = useState<string | null>(null);
   const [betName, setBetName] = useState("");
@@ -94,16 +93,39 @@ export default function WagersList({ matches, teams, wagers: initialWagers, sche
         const isExpanded = selectedWager === wager.id;
         const totalBets = wager.bets.length;
         const totalAmount = wager.bets.reduce((sum, b) => sum + b.amount, 0);
+        const homePool = wager.bets
+          .filter((bet) => bet.teamId === match.homeTeamId)
+          .reduce((sum, bet) => sum + bet.amount, 0);
+        const awayPool = wager.bets
+          .filter((bet) => bet.teamId === match.awayTeamId)
+          .reduce((sum, bet) => sum + bet.amount, 0);
+        const homeShare = totalAmount > 0 ? (homePool / totalAmount) * 100 : 0;
+        const awayShare = totalAmount > 0 ? (awayPool / totalAmount) * 100 : 0;
+        const homeProbability = (100 / wager.oddsHome).toFixed(1);
+        const awayProbability = (100 / wager.oddsAway).toFixed(1);
+        const selectedOdds =
+          betTeam === match.homeTeamId
+            ? wager.oddsHome
+            : betTeam === match.awayTeamId
+              ? wager.oddsAway
+              : null;
+        const betAmountValue = Number.parseFloat(betAmount || "0");
+        const potentialReturn =
+          selectedOdds && Number.isFinite(betAmountValue) && betAmountValue > 0
+            ? betAmountValue * selectedOdds
+            : null;
 
         return (
           <div
             key={wager.id}
-            className="bg-card-bg rounded-lg border border-border overflow-hidden"
+            className="bg-card-bg rounded-2xl border border-border overflow-hidden"
           >
             <div className="p-4">
               <div className="flex items-center justify-between gap-4 mb-4">
                 <div className="flex-1">
-                  <p className="text-sm text-text-muted mb-1">Rungtynės #{match.id}</p>
+                  <p className="text-sm text-text-muted mb-1">
+                    {match.round}. turas · Rungtynės #{match.id}
+                  </p>
                   <p className="font-bold text-lg">
                     {homeName} <span className="text-text-muted">vs</span> {awayName}
                   </p>
@@ -124,20 +146,54 @@ export default function WagersList({ matches, teams, wagers: initialWagers, sche
                 <div className="bg-background rounded-lg p-3 text-center border border-border">
                   <p className="text-sm text-text-muted mb-1">{homeName}</p>
                   <p className="text-2xl font-black text-primary">{wager.oddsHome.toFixed(2)}</p>
+                  <p className="mt-1 text-xs text-text-muted">Tikimybė {homeProbability}%</p>
                 </div>
                 <div className="bg-background rounded-lg p-3 text-center border border-border">
                   <p className="text-sm text-text-muted mb-1">{awayName}</p>
                   <p className="text-2xl font-black text-primary">{wager.oddsAway.toFixed(2)}</p>
+                  <p className="mt-1 text-xs text-text-muted">Tikimybė {awayProbability}%</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between text-xs text-text-muted">
+                  <span>Rinkos pasiskirstymas</span>
+                  <span>€{totalAmount.toFixed(2)} bankas</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span>{homeName}</span>
+                      <span>{homeShare.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-border">
+                      <div className="h-full bg-primary" style={{ width: `${homeShare}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span>{awayName}</span>
+                      <span>{awayShare.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-border">
+                      <div className="h-full bg-primary" style={{ width: `${awayShare}%` }} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {match.status === 'scheduled' && (
-                <button
-                  onClick={() => setSelectedWager(isExpanded ? null : wager.id)}
-                  className="w-full bg-primary text-black font-bold py-3 rounded-lg hover:bg-primary-dark transition-colors"
-                >
-                  {isExpanded ? "Uždaryti" : "STATYTI"}
-                </button>
+                <div className="space-y-3">
+                  <p className="text-xs text-text-muted">
+                    Statymai užsidaro prasidėjus rungtynėms.
+                  </p>
+                  <button
+                    onClick={() => setSelectedWager(isExpanded ? null : wager.id)}
+                    className="w-full bg-primary text-black font-bold py-3 rounded-lg hover:bg-primary-dark transition-colors"
+                  >
+                    {isExpanded ? "Uždaryti" : "STATYTI"}
+                  </button>
+                </div>
               )}
 
               {match.status === 'played' && (
@@ -212,6 +268,15 @@ export default function WagersList({ matches, teams, wagers: initialWagers, sche
                       placeholder="10.00"
                     />
                   </div>
+
+                  {potentialReturn !== null && (
+                    <div className="rounded-lg border border-border bg-background p-3 text-sm">
+                      <p className="text-text-muted">Galima grąža</p>
+                      <p className="mt-1 text-lg font-black text-primary">
+                        €{potentialReturn.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
 
                   <button
                     onClick={() => handlePlaceBet(wager.id)}

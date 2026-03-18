@@ -50,6 +50,9 @@ export default function RootLayout({
                 <Link href="/players" className="px-4 py-2 rounded hover:bg-card-bg transition-colors text-text-muted hover:text-white">
                   Žaidėjai
                 </Link>
+                <Link href="/teams" className="px-4 py-2 rounded hover:bg-card-bg transition-colors text-text-muted hover:text-white">
+                  Komandos
+                </Link>
                 <Link href="/wagers" className="px-4 py-2 rounded hover:bg-card-bg transition-colors text-text-muted hover:text-white">
                   Lažybos
                 </Link>
