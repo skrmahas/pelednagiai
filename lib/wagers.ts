@@ -61,19 +61,20 @@ function handleError(error: PostgrestError | null): void {
 export async function getWagers(): Promise<Wager[]> {
   const { data, error } = await supabase
     .from("wagers")
-    .select<SupabaseWagerRow>(
+    .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .order("matchid", { ascending: true });
 
   handleError(error);
-  return (data ?? []).map(normalizeWager);
+  const rows = (data ?? []) as SupabaseWagerRow[];
+  return rows.map(normalizeWager);
 }
 
 export async function getWager(id: string): Promise<Wager | undefined> {
   const { data, error } = await supabase
     .from("wagers")
-    .select<SupabaseWagerRow>(
+    .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .eq("id", id)
@@ -81,13 +82,14 @@ export async function getWager(id: string): Promise<Wager | undefined> {
 
   handleError(error);
   if (!data) return undefined;
-  return normalizeWager(data);
+  const row = data as SupabaseWagerRow;
+  return normalizeWager(row);
 }
 
 export async function getWagerByMatch(matchId: string): Promise<Wager | undefined> {
   const { data, error } = await supabase
     .from("wagers")
-    .select<SupabaseWagerRow>(
+    .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .eq("matchid", matchId)
@@ -95,7 +97,8 @@ export async function getWagerByMatch(matchId: string): Promise<Wager | undefine
 
   handleError(error);
   if (!data) return undefined;
-  return normalizeWager(data);
+  const row = data as SupabaseWagerRow;
+  return normalizeWager(row);
 }
 
 export async function createWager(
@@ -109,7 +112,7 @@ export async function createWager(
       oddsaway: wager.oddsAway,
       description: wager.description ?? null,
     })
-    .select<SupabaseWagerRow>("id, matchid, oddshome, oddsaway, description")
+    .select("id, matchid, oddshome, oddsaway, description")
     .single();
 
   handleError(error);
@@ -117,12 +120,13 @@ export async function createWager(
     throw new Error("Wager creation failed");
   }
 
+  const row = data as SupabaseWagerRow;
   return {
-    id: data.id,
-    matchId: data.matchid,
-    oddsHome: Number(data.oddshome),
-    oddsAway: Number(data.oddsaway),
-    description: data.description ?? undefined,
+    id: row.id,
+    matchId: row.matchid,
+    oddsHome: Number(row.oddshome),
+    oddsAway: Number(row.oddsaway),
+    description: row.description ?? undefined,
     bets: [],
   };
 }
@@ -161,7 +165,8 @@ export async function updateWager(
 
   handleError(error);
   if (!data) return null;
-  return normalizeWager(data);
+  const row = data as SupabaseWagerRow;
+  return normalizeWager(row);
 }
 
 export async function deleteWager(id: string): Promise<boolean> {
