@@ -11,6 +11,25 @@ npm run dev
 
 Svetainė: http://localhost:3000
 
+## Aplinkos kintamieji
+
+Reikalingi `.env.local` arba Vercel projekto nustatymuose:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+ADMIN_PASSWORD=...
+ADMIN_SESSION_SECRET=...
+SITE_PASSWORD=...
+SITE_SESSION_SECRET=...
+```
+
+Pastabos:
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` naudojamas viešiems skaitymo užklausoms.
+- `SUPABASE_SERVICE_ROLE_KEY` naudojamas tik serverio pusėje administravimo veiksmams.
+- `ADMIN_SESSION_SECRET` ir `SITE_SESSION_SECRET` turi būti ilgos atsitiktinės reikšmės.
+
 ## Puslapiai
 
 - `/` – Pradžia su komandų sąrašu

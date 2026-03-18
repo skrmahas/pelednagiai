@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTeam, updateTeam } from "@/lib/data";
 import { isAuthenticated } from "@/lib/auth";
+import { ValidationError, readJsonBody, readRequiredString } from "@/lib/request";
 
 export async function GET(
   _request: NextRequest,
@@ -24,20 +25,24 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const body = await request.json();
-  const { name } = body;
-
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Komandos pavadinimas privalomas" },
-      { status: 400 }
+  try {
+    const body = await readJsonBody(request);
+    const name = readRequiredString(
+      body,
+      "name",
+      "Komandos pavadinimas privalomas"
     );
-  }
 
-  const team = await updateTeam(id, name.trim());
-  if (!team) {
-    return NextResponse.json({ error: "Komanda nerasta" }, { status: 404 });
-  }
+    const team = await updateTeam(id, name);
+    if (!team) {
+      return NextResponse.json({ error: "Komanda nerasta" }, { status: 404 });
+    }
 
-  return NextResponse.json(team);
+    return NextResponse.json(team);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
 }

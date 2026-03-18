@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabaseAdmin, supabasePublic } from "./supabase";
 
 export interface Team {
   id: string;
@@ -28,7 +28,7 @@ export interface Standing {
 }
 
 export async function getTeams(): Promise<Team[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("teams")
     .select("id, name")
     .order("id");
@@ -46,7 +46,7 @@ export async function getTeam(id: string): Promise<Team | undefined> {
 }
 
 export async function updateTeam(id: string, name: string): Promise<Team | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("teams")
     .update({ name })
     .eq("id", id)
@@ -61,7 +61,7 @@ export async function updateTeam(id: string, name: string): Promise<Team | null>
 }
 
 export async function getMatches(): Promise<Match[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("matches")
     .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .order("round")
@@ -83,7 +83,7 @@ export async function getMatches(): Promise<Match[]> {
 }
 
 export async function getMatch(id: string): Promise<Match | undefined> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("matches")
     .select("id, hometeamid, awayteamid, homescore, awayscore, round, status")
     .eq("id", id)
@@ -109,7 +109,7 @@ export async function getMatch(id: string): Promise<Match | undefined> {
 }
 
 export async function createMatch(match: Omit<Match, 'id'>): Promise<Match> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("matches")
     .insert({
       hometeamid: match.homeTeamId,
@@ -143,7 +143,7 @@ export async function updateMatch(
   id: string,
   updates: Partial<Pick<Match, 'homeScore' | 'awayScore' | 'status' | 'round'>>
 ): Promise<Match | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("matches")
     .update({
       // map our field names to DB column names
@@ -176,7 +176,7 @@ export async function updateMatch(
 }
 
 export async function deleteMatch(id: string): Promise<boolean> {
-  const { error } = await supabase.from("matches").delete().eq("id", id);
+  const { error } = await supabaseAdmin.from("matches").delete().eq("id", id);
 
   if (error) {
     throw error;

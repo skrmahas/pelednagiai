@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMatches, createMatch } from "@/lib/data";
 import { isAuthenticated } from "@/lib/auth";
+import {
+  ValidationError,
+  readJsonBody,
+  readOptionalNumber,
+  readRequiredString,
+} from "@/lib/request";
 
 export async function GET() {
   const matches = await getMatches();
@@ -13,24 +19,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Neautorizuota" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { homeTeamId, awayTeamId, round } = body;
-
-  if (!homeTeamId || !awayTeamId) {
-    return NextResponse.json(
-      { error: "Reikia nurodyti abi komandas" },
-      { status: 400 }
-    );
-  }
-
-  if (homeTeamId === awayTeamId) {
-    return NextResponse.json(
-      { error: "Komanda negali žaisti prieš save" },
-      { status: 400 }
-    );
-  }
-
   try {
+    const body = await readJsonBody(request);
+    const homeTeamId = readRequiredString(
+      body,
+      "homeTeamId",
+      "Reikia nurodyti abi komandas"
+    );
+    const awayTeamId = readRequiredString(
+      body,
+      "awayTeamId",
+      "Reikia nurodyti abi komandas"
+    );
+    const round = readOptionalNumber(body, "round");
+
+    if (homeTeamId === awayTeamId) {
+      return NextResponse.json(
+        { error: "Komanda negali žaisti prieš save" },
+        { status: 400 }
+      );
+    }
+
     const match = await createMatch({
       homeTeamId,
       awayTeamId,
@@ -41,6 +50,9 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(match, { status: 201 });
   } catch (e: any) {
+    if (e instanceof ValidationError) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
     const message =
       typeof e?.message === "string"
         ? e.message

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getWagers, createWager } from "@/lib/wagers";
 import { isAuthenticated } from "@/lib/auth";
+import {
+  ValidationError,
+  readJsonBody,
+  readNumber,
+  readOptionalString,
+  readRequiredString,
+} from "@/lib/request";
 
 export async function GET() {
   const wagers = await getWagers();
@@ -13,29 +20,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Neautorizuota" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { matchId, oddsHome, oddsAway, description } = body;
-
-  if (!matchId || oddsHome === undefined || oddsAway === undefined) {
-    return NextResponse.json(
-      { error: "Trūksta privalomų laukų" },
-      { status: 400 }
+  try {
+    const body = await readJsonBody(request);
+    const matchId = readRequiredString(
+      body,
+      "matchId",
+      "Trūksta privalomų laukų"
     );
-  }
-
-  if (oddsHome <= 0 || oddsAway <= 0) {
-    return NextResponse.json(
-      { error: "Koeficientai turi būti teigiami" },
-      { status: 400 }
+    const oddsHome = readNumber(
+      body,
+      "oddsHome",
+      "Koeficientai turi būti skaičiai"
     );
+    const oddsAway = readNumber(
+      body,
+      "oddsAway",
+      "Koeficientai turi būti skaičiai"
+    );
+    const description = readOptionalString(body, "description");
+
+    if (oddsHome <= 0 || oddsAway <= 0) {
+      return NextResponse.json(
+        { error: "Koeficientai turi būti teigiami" },
+        { status: 400 }
+      );
+    }
+
+    const wager = await createWager({
+      matchId,
+      oddsHome,
+      oddsAway,
+      description,
+    });
+
+    return NextResponse.json(wager, { status: 201 });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
   }
-
-  const wager = await createWager({
-    matchId,
-    oddsHome,
-    oddsAway,
-    description,
-  });
-
-  return NextResponse.json(wager, { status: 201 });
 }

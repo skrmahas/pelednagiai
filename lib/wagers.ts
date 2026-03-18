@@ -1,5 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin, supabasePublic } from "@/lib/supabase";
 
 export interface Wager {
   id: string;
@@ -59,7 +59,7 @@ function handleError(error: PostgrestError | null): void {
 }
 
 export async function getWagers(): Promise<Wager[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("wagers")
     .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
@@ -72,7 +72,7 @@ export async function getWagers(): Promise<Wager[]> {
 }
 
 export async function getWager(id: string): Promise<Wager | undefined> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("wagers")
     .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
@@ -87,7 +87,7 @@ export async function getWager(id: string): Promise<Wager | undefined> {
 }
 
 export async function getWagerByMatch(matchId: string): Promise<Wager | undefined> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("wagers")
     .select(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
@@ -104,7 +104,7 @@ export async function getWagerByMatch(matchId: string): Promise<Wager | undefine
 export async function createWager(
   wager: Omit<Wager, "id" | "bets">
 ): Promise<Wager> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("wagers")
     .insert({
       matchid: wager.matchId,
@@ -135,7 +135,7 @@ export async function addBet(
   wagerId: string,
   bet: Omit<Bet, "id" | "timestamp">
 ): Promise<Wager | null> {
-  const { error } = await supabase.from("bets").insert({
+  const { error } = await supabaseAdmin.from("bets").insert({
     wagerid: wagerId,
     visitorname: bet.visitorName,
     teamid: bet.teamId,
@@ -150,7 +150,7 @@ export async function updateWager(
   id: string,
   updates: Partial<Pick<Wager, "oddsHome" | "oddsAway" | "description">>
 ): Promise<Wager | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("wagers")
     .update({
       oddshome: updates.oddsHome,
@@ -170,7 +170,7 @@ export async function updateWager(
 }
 
 export async function deleteWager(id: string): Promise<boolean> {
-  const { error, count } = await supabase
+  const { error, count } = await supabaseAdmin
     .from("wagers")
     .delete({ count: "exact" })
     .eq("id", id);

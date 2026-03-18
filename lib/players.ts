@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabaseAdmin, supabasePublic } from "./supabase";
 
 export type PlayerCategory = "regular" | "substitute";
 
@@ -69,7 +69,7 @@ export interface PlayerWithStats extends Player {
 }
 
 export async function getPlayers(): Promise<Player[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("players")
     .select("id, name, teamid, category")
     .order("id");
@@ -92,7 +92,7 @@ export async function getPlayer(id: string): Promise<Player | undefined> {
 }
 
 export async function getPlayersByTeam(teamId: string): Promise<Player[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("players")
     .select("id, name, teamid, category")
     .eq("teamid", teamId)
@@ -122,7 +122,7 @@ export async function getPlayersForMatch(homeTeamId: string, awayTeamId: string)
 }
 
 export async function getAllPlayerStats(): Promise<PlayerStats[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("player_game_stats")
     .select(
       "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, pf, twofgmade, twofgattempts, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
@@ -289,7 +289,7 @@ const gameStatsRow = (playerId: string, gameStats: GameStats) => ({
 
 /** Insert or update (upsert) game stats for a player so duplicate stats are not created. */
 export async function addGameStats(playerId: string, gameStats: GameStats): Promise<PlayerStats | null> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("player_game_stats")
     .upsert(gameStatsRow(playerId, gameStats), {
       onConflict: "playerid,matchid",
@@ -311,7 +311,7 @@ export interface StatsRowForMatch {
 
 /** Get all player-game stat rows for a given match (for admin edit/delete). */
 export async function getStatsRowsForMatch(matchId: string): Promise<StatsRowForMatch[]> {
-  const { data, error } = await supabase
+  const { data, error } = await supabasePublic
     .from("player_game_stats")
     .select(
       "playerid, matchid, points, rebounds, assists, steals, blocks, turnovers, pf, twofgmade, twofgattempts, fgmade, fgattempts, threeptmade, threeptattempts, ftmade, ftattempts"
@@ -367,7 +367,7 @@ export async function updateGameStats(
   if (gameStats.ftMade !== undefined) updatePayload.ftmade = gameStats.ftMade;
   if (gameStats.ftAttempts !== undefined) updatePayload.ftattempts = gameStats.ftAttempts;
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("player_game_stats")
     .update(updatePayload)
     .eq("playerid", playerId)
@@ -378,7 +378,7 @@ export async function updateGameStats(
 
 /** Delete game stats for a player in a specific match. */
 export async function deleteGameStats(playerId: string, matchId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("player_game_stats")
     .delete()
     .eq("playerid", playerId)

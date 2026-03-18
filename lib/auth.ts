@@ -1,28 +1,52 @@
-import { cookies } from 'next/headers';
+import { cookies } from "next/headers";
+import { createSessionToken, verifySessionToken } from "@/lib/session";
 
-const ADMIN_COOKIE = 'admin_session';
-const SESSION_VALUE = 'authenticated';
+const ADMIN_COOKIE = "admin_session";
+const ADMIN_SESSION_TTL = 60 * 60 * 24 * 7;
+
+function getAdminPassword(): string | undefined {
+  return process.env.ADMIN_PASSWORD;
+}
+
+function getAdminSessionSecret(): string {
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret) {
+    throw new Error("ADMIN_SESSION_SECRET is not set");
+  }
+  return secret;
+}
 
 export async function isAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
-  const session = cookieStore.get(ADMIN_COOKIE);
-  return session?.value === SESSION_VALUE;
+  return verifySessionToken(
+    cookieStore.get(ADMIN_COOKIE)?.value,
+    "admin",
+    process.env.ADMIN_SESSION_SECRET
+  );
 }
 
 export function verifyPassword(password: string): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
+  const adminPassword = getAdminPassword();
+  if (!adminPassword) {
+    return false;
+  }
   return password === adminPassword;
 }
 
 export async function setAuthCookie(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE, SESSION_VALUE, {
+  const token = await createSessionToken(
+    "admin",
+    getAdminSessionSecret(),
+    ADMIN_SESSION_TTL
+  );
+
+  cookieStore.set(ADMIN_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: '/',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: ADMIN_SESSION_TTL,
+    path: "/",
   });
 }
 

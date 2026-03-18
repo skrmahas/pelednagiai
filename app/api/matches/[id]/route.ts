@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMatch, updateMatch, deleteMatch } from "@/lib/data";
 import { isAuthenticated } from "@/lib/auth";
+import {
+  ValidationError,
+  readEnumValue,
+  readJsonBody,
+  readOptionalNumber,
+} from "@/lib/request";
 
 export async function GET(
   _request: NextRequest,
@@ -24,57 +30,65 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const body = await request.json();
-  const { homeScore, awayScore, status, round } = body;
+  try {
+    const body = await readJsonBody(request);
+    const homeScore = readOptionalNumber(body, "homeScore");
+    const awayScore = readOptionalNumber(body, "awayScore");
+    const status = readEnumValue(
+      body,
+      "status",
+      ["scheduled", "played"] as const,
+      "Neteisinga būsena"
+    );
+    const round = readOptionalNumber(body, "round");
+    const updates: Record<string, unknown> = {};
 
-  const updates: Record<string, unknown> = {};
-
-  if (homeScore !== undefined) {
-    if (typeof homeScore !== "number" || homeScore < 0) {
-      return NextResponse.json(
-        { error: "Neteisingas namų komandos rezultatas" },
-        { status: 400 }
-      );
+    if (homeScore !== undefined) {
+      if (homeScore < 0) {
+        return NextResponse.json(
+          { error: "Neteisingas namų komandos rezultatas" },
+          { status: 400 }
+        );
+      }
+      updates.homeScore = homeScore;
     }
-    updates.homeScore = homeScore;
-  }
 
-  if (awayScore !== undefined) {
-    if (typeof awayScore !== "number" || awayScore < 0) {
-      return NextResponse.json(
-        { error: "Neteisingas svečių komandos rezultatas" },
-        { status: 400 }
-      );
+    if (awayScore !== undefined) {
+      if (awayScore < 0) {
+        return NextResponse.json(
+          { error: "Neteisingas svečių komandos rezultatas" },
+          { status: 400 }
+        );
+      }
+      updates.awayScore = awayScore;
     }
-    updates.awayScore = awayScore;
-  }
 
-  if (status !== undefined) {
-    if (status !== "scheduled" && status !== "played") {
-      return NextResponse.json(
-        { error: "Neteisinga būsena" },
-        { status: 400 }
-      );
+    if (status !== undefined) {
+      updates.status = status;
     }
-    updates.status = status;
-  }
 
-  if (round !== undefined) {
-    if (typeof round !== "number" || round < 1) {
-      return NextResponse.json(
-        { error: "Neteisingas turo numeris" },
-        { status: 400 }
-      );
+    if (round !== undefined) {
+      if (round < 1) {
+        return NextResponse.json(
+          { error: "Neteisingas turo numeris" },
+          { status: 400 }
+        );
+      }
+      updates.round = round;
     }
-    updates.round = round;
-  }
 
-  const match = await updateMatch(id, updates);
-  if (!match) {
-    return NextResponse.json({ error: "Rungtynės nerastos" }, { status: 404 });
-  }
+    const match = await updateMatch(id, updates);
+    if (!match) {
+      return NextResponse.json({ error: "Rungtynės nerastos" }, { status: 404 });
+    }
 
-  return NextResponse.json(match);
+    return NextResponse.json(match);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    throw error;
+  }
 }
 
 export async function DELETE(
