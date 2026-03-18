@@ -1,7 +1,5 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
+import type { PostgrestError } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 export interface Wager {
   id: string;
@@ -20,71 +18,158 @@ export interface Bet {
   timestamp: string;
 }
 
-export async function getWagers(): Promise<Wager[]> {
-  const filePath = path.join(DATA_DIR, 'wagers.json');
-  try {
-    const data = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return [];
+type SupabaseWagerRow = {
+  id: string;
+  matchid: string;
+  oddshome: number;
+  oddsaway: number;
+  description: string | null;
+  bets:
+    | Array<{
+        id: string;
+        visitorname: string;
+        teamid: string;
+        amount: number;
+        timestamp: string;
+      }>
+    | null;
+};
+
+function normalizeWager(row: SupabaseWagerRow): Wager {
+  return {
+    id: row.id,
+    matchId: row.matchid,
+    oddsHome: Number(row.oddshome),
+    oddsAway: Number(row.oddsaway),
+    description: row.description ?? undefined,
+    bets: (row.bets ?? []).map((bet) => ({
+      id: bet.id,
+      visitorName: bet.visitorname,
+      teamId: bet.teamid,
+      amount: Number(bet.amount),
+      timestamp: bet.timestamp,
+    })),
+  };
+}
+
+function handleError(error: PostgrestError | null): void {
+  if (error) {
+    throw error;
   }
 }
 
+export async function getWagers(): Promise<Wager[]> {
+  const { data, error } = await supabase
+    .from<SupabaseWagerRow>("wagers")
+    .select(
+      "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
+    )
+    .order("matchid", { ascending: true });
+
+  handleError(error);
+  return (data ?? []).map(normalizeWager);
+}
+
 export async function getWager(id: string): Promise<Wager | undefined> {
-  const wagers = await getWagers();
-  return wagers.find(w => w.id === id);
+  const { data, error } = await supabase
+    .from<SupabaseWagerRow>("wagers")
+    .select(
+      "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  handleError(error);
+  if (!data) return undefined;
+  return normalizeWager(data);
 }
 
 export async function getWagerByMatch(matchId: string): Promise<Wager | undefined> {
-  const wagers = await getWagers();
-  return wagers.find(w => w.matchId === matchId);
+  const { data, error } = await supabase
+    .from<SupabaseWagerRow>("wagers")
+    .select(
+      "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
+    )
+    .eq("matchid", matchId)
+    .maybeSingle();
+
+  handleError(error);
+  if (!data) return undefined;
+  return normalizeWager(data);
 }
 
-export async function createWager(wager: Omit<Wager, 'id' | 'bets'>): Promise<Wager> {
-  const filePath = path.join(DATA_DIR, 'wagers.json');
-  const wagers = await getWagers();
-  const newId = String(Math.max(...wagers.map(w => parseInt(w.id)), 0) + 1);
-  const newWager: Wager = { id: newId, ...wager, bets: [] };
-  wagers.push(newWager);
-  await fs.writeFile(filePath, JSON.stringify(wagers, null, 2));
-  return newWager;
-}
+export async function createWager(
+  wager: Omit<Wager, "id" | "bets">
+): Promise<Wager> {
+  const { data, error } = await supabase
+    .from<SupabaseWagerRow>("wagers")
+    .insert({
+      matchid: wager.matchId,
+      oddshome: wager.oddsHome,
+      oddsaway: wager.oddsAway,
+      description: wager.description ?? null,
+    })
+    .select("id, matchid, oddshome, oddsaway, description")
+    .single();
 
-export async function addBet(wagerId: string, bet: Omit<Bet, 'id' | 'timestamp'>): Promise<Wager | null> {
-  const filePath = path.join(DATA_DIR, 'wagers.json');
-  const wagers = await getWagers();
-  const index = wagers.findIndex(w => w.id === wagerId);
-  if (index === -1) return null;
-  
-  const newBet: Bet = {
-    id: String(wagers[index].bets.length + 1),
-    ...bet,
-    timestamp: new Date().toISOString(),
+  handleError(error);
+  if (!data) {
+    throw new Error("Wager creation failed");
+  }
+
+  return {
+    id: data.id,
+    matchId: data.matchid,
+    oddsHome: Number(data.oddshome),
+    oddsAway: Number(data.oddsaway),
+    description: data.description ?? undefined,
+    bets: [],
   };
-  wagers[index].bets.push(newBet);
-  await fs.writeFile(filePath, JSON.stringify(wagers, null, 2));
-  return wagers[index];
+}
+
+export async function addBet(
+  wagerId: string,
+  bet: Omit<Bet, "id" | "timestamp">
+): Promise<Wager | null> {
+  const { error } = await supabase.from("bets").insert({
+    wagerid: wagerId,
+    visitorname: bet.visitorName,
+    teamid: bet.teamId,
+    amount: bet.amount,
+  });
+
+  handleError(error);
+  return (await getWager(wagerId)) ?? null;
 }
 
 export async function updateWager(
   id: string,
-  updates: Partial<Pick<Wager, 'oddsHome' | 'oddsAway' | 'description'>>
+  updates: Partial<Pick<Wager, "oddsHome" | "oddsAway" | "description">>
 ): Promise<Wager | null> {
-  const filePath = path.join(DATA_DIR, 'wagers.json');
-  const wagers = await getWagers();
-  const index = wagers.findIndex(w => w.id === id);
-  if (index === -1) return null;
-  wagers[index] = { ...wagers[index], ...updates };
-  await fs.writeFile(filePath, JSON.stringify(wagers, null, 2));
-  return wagers[index];
+  const { data, error } = await supabase
+    .from<SupabaseWagerRow>("wagers")
+    .update({
+      oddshome: updates.oddsHome,
+      oddsaway: updates.oddsAway,
+      description: updates.description ?? null,
+    })
+    .eq("id", id)
+    .select(
+      "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
+    )
+    .maybeSingle();
+
+  handleError(error);
+  if (!data) return null;
+  return normalizeWager(data);
 }
 
 export async function deleteWager(id: string): Promise<boolean> {
-  const filePath = path.join(DATA_DIR, 'wagers.json');
-  const wagers = await getWagers();
-  const index = wagers.findIndex(w => w.id === id);
-  if (index === -1) return false;
-  wagers.splice(index, 1);
-  await fs.writeFile(filePath, JSON.stringify(wagers, null, 2));
-  return true;
+  const { error, count } = await supabase
+    .from("wagers")
+    .delete({ count: "exact", returning: "minimal" })
+    .eq("id", id);
+
+  handleError(error);
+  return Boolean(count && count > 0);
 }

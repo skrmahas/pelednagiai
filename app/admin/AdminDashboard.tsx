@@ -191,7 +191,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
         // Skip players who were substituted out
         if (replacedIds.has(ps.playerId)) continue;
 
-        await fetch(`/api/players/${ps.playerId}/stats`, {
+        const res = await fetch(`/api/players/${ps.playerId}/stats`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -202,9 +202,9 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             steals: parseInt(ps.steals) || 0,
             blocks: parseInt(ps.blocks) || 0,
             turnovers: parseInt(ps.turnovers) || 0,
-              personalFouls: parseInt(ps.personalFouls) || 0,
-              twoFgMade: parseInt(ps.twoFgMade) || 0,
-              twoFgAttempts: parseInt(ps.twoFgAttempts) || 0,
+            personalFouls: parseInt(ps.personalFouls) || 0,
+            twoFgMade: parseInt(ps.twoFgMade) || 0,
+            twoFgAttempts: parseInt(ps.twoFgAttempts) || 0,
             fgMade: parseInt(ps.fgMade) || 0,
             fgAttempts: parseInt(ps.fgAttempts) || 0,
             threePtMade: parseInt(ps.threePtMade) || 0,
@@ -213,6 +213,13 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
             ftAttempts: parseInt(ps.ftAttempts) || 0,
           }),
         });
+
+        if (!res.ok) {
+          const payload = await res
+            .json()
+            .catch(() => ({ error: "Klaida" }));
+          throw new Error(payload?.error ?? payload?.message ?? "Klaida");
+        }
       }
       setSuccess("Statistika išsaugota!");
       setStatsPopup(null);
