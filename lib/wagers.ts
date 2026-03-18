@@ -60,8 +60,8 @@ function handleError(error: PostgrestError | null): void {
 
 export async function getWagers(): Promise<Wager[]> {
   const { data, error } = await supabase
-    .from<SupabaseWagerRow>("wagers")
-    .select(
+    .from("wagers")
+    .select<SupabaseWagerRow>(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .order("matchid", { ascending: true });
@@ -72,8 +72,8 @@ export async function getWagers(): Promise<Wager[]> {
 
 export async function getWager(id: string): Promise<Wager | undefined> {
   const { data, error } = await supabase
-    .from<SupabaseWagerRow>("wagers")
-    .select(
+    .from("wagers")
+    .select<SupabaseWagerRow>(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .eq("id", id)
@@ -86,8 +86,8 @@ export async function getWager(id: string): Promise<Wager | undefined> {
 
 export async function getWagerByMatch(matchId: string): Promise<Wager | undefined> {
   const { data, error } = await supabase
-    .from<SupabaseWagerRow>("wagers")
-    .select(
+    .from("wagers")
+    .select<SupabaseWagerRow>(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .eq("matchid", matchId)
@@ -102,14 +102,14 @@ export async function createWager(
   wager: Omit<Wager, "id" | "bets">
 ): Promise<Wager> {
   const { data, error } = await supabase
-    .from<SupabaseWagerRow>("wagers")
+    .from("wagers")
     .insert({
       matchid: wager.matchId,
       oddshome: wager.oddsHome,
       oddsaway: wager.oddsAway,
       description: wager.description ?? null,
     })
-    .select("id, matchid, oddshome, oddsaway, description")
+    .select<SupabaseWagerRow>("id, matchid, oddshome, oddsaway, description")
     .single();
 
   handleError(error);
@@ -147,14 +147,14 @@ export async function updateWager(
   updates: Partial<Pick<Wager, "oddsHome" | "oddsAway" | "description">>
 ): Promise<Wager | null> {
   const { data, error } = await supabase
-    .from<SupabaseWagerRow>("wagers")
+    .from("wagers")
     .update({
       oddshome: updates.oddsHome,
       oddsaway: updates.oddsAway,
       description: updates.description ?? null,
     })
     .eq("id", id)
-    .select(
+    .select<SupabaseWagerRow>(
       "id, matchid, oddshome, oddsaway, description, bets(id, visitorname, teamid, amount, timestamp)"
     )
     .maybeSingle();
