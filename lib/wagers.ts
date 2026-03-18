@@ -172,7 +172,7 @@ export async function updateWager(
 export async function deleteWager(id: string): Promise<boolean> {
   const { error, count } = await supabase
     .from("wagers")
-    .delete({ count: "exact", returning: "minimal" })
+    .delete({ count: "exact" })
     .eq("id", id);
 
   handleError(error);
