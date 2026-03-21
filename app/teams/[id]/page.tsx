@@ -174,7 +174,7 @@ export default async function TeamPage({ params }: Props) {
                   <>
                     <p className="mt-2 text-xl font-black">{hotPlayer.name}</p>
                     <p className="text-sm text-text-muted">
-                      {hotPlayer.avgPoints} TŠK | {hotPlayer.avgRebounds} ATŠ | {hotPlayer.avgAssists} REZ
+                      {hotPlayer.avgPoints} TŠK | {hotPlayer.avgRebounds} REB | {hotPlayer.avgAssists} REZ
                     </p>
                   </>
                 ) : (
@@ -200,7 +200,7 @@ export default async function TeamPage({ params }: Props) {
                   <div>
                     <p className="font-bold">{player.name}</p>
                     <p className="text-sm text-text-muted">
-                      {player.gamesPlayed} rung. | {player.avgPoints} TŠK | {player.avgRebounds} ATŠ
+                      {player.gamesPlayed} rung. | {player.avgPoints} TŠK | {player.avgRebounds} REB
                     </p>
                   </div>
                   <div className="text-right">

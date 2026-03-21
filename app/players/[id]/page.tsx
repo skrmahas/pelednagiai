@@ -123,7 +123,7 @@ export default async function PlayerProfilePage({ params }: Props) {
             </div>
             <div className="bg-background rounded-lg p-4 text-center border border-border">
               <p className="text-4xl font-black">{avgRebounds}</p>
-              <p className="text-sm text-text-muted">ATŠ</p>
+              <p className="text-sm text-text-muted">REB</p>
             </div>
             <div className="bg-background rounded-lg p-4 text-center border border-border">
               <p className="text-4xl font-black">{avgAssists}</p>
@@ -195,7 +195,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                   <div className="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
                     <div className="rounded-lg border border-border px-2 py-2">
                       <p className="font-bold">{game.rebounds}</p>
-                      <p className="text-xs text-text-muted">ATŠ</p>
+                      <p className="text-xs text-text-muted">REB</p>
                     </div>
                     <div className="rounded-lg border border-border px-2 py-2">
                       <p className="font-bold">{game.assists}</p>
@@ -222,7 +222,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                   <th className="px-3 py-2 text-left text-text-muted">Varžovas</th>
                   <th className="px-3 py-2 text-center text-text-muted">Rez.</th>
                   <th className="px-3 py-2 text-center text-text-muted">TŠK</th>
-                  <th className="px-3 py-2 text-center text-text-muted">ATŠ</th>
+                  <th className="px-3 py-2 text-center text-text-muted">REB</th>
                   <th className="px-3 py-2 text-center text-text-muted">REZ</th>
                   <th className="px-3 py-2 text-center text-text-muted">PER</th>
                   <th className="px-3 py-2 text-center text-text-muted">BLK</th>
@@ -306,7 +306,7 @@ export default async function PlayerProfilePage({ params }: Props) {
                   <td className="px-3 py-2 text-center text-primary font-bold">{avgPf}</td>
                 </tr>
                 <tr>
-                  <td className="px-3 py-2">Atšokę kamuoliai</td>
+                  <td className="px-3 py-2">Rebounds</td>
                   <td className="px-3 py-2 text-center font-bold">{t.rebounds}</td>
                   <td className="px-3 py-2 text-center text-primary font-bold">{avgRebounds}</td>
                 </tr>
@@ -352,8 +352,8 @@ export default async function PlayerProfilePage({ params }: Props) {
       </div>
 
       <div className="bg-card-bg rounded-lg border border-border p-4 text-sm text-text-muted">
-        <p><strong className="text-primary">EFF</strong> = (TŠK + ATŠ + REZ + PER + BLK) - (Prašauti FG) - (Prašauti FT) - KLD</p>
-        <p className="mt-1">TŠK = Taškai | ATŠ = Atšokę | REZ = Rez. perdavimai | PER = Perimimai | BLK = Blokai | KLD = Klaidos</p>
+        <p><strong className="text-primary">EFF</strong> = (TŠK + REB + REZ + PER + BLK) - (Prašauti FG) - (Prašauti FT) - KLD</p>
+        <p className="mt-1">TŠK = Taškai | REB = Rebounds | REZ = Rez. perdavimai | PER = Perimimai | BLK = Blokai | KLD = Klaidos</p>
       </div>
     </div>
   );

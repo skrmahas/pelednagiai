@@ -22,7 +22,7 @@ type SortKey =
 const SORT_LABELS: Record<SortKey, string> = {
   eff: "EFF",
   avgPoints: "TŠK",
-  avgRebounds: "ATŠ",
+  avgRebounds: "REB",
   avgAssists: "REZ",
   fgPercentage: "FG%",
   threePtPercentage: "3PT%",
@@ -174,7 +174,7 @@ export default function PlayersDirectory({ players, teams }: Props) {
               </div>
               <div className="rounded-xl border border-border bg-background p-2 text-center">
                 <p className="font-bold">{player.avgRebounds}</p>
-                <p className="text-xs text-text-muted">ATŠ</p>
+                <p className="text-xs text-text-muted">REB</p>
               </div>
               <div className="rounded-xl border border-border bg-background p-2 text-center">
                 <p className="font-bold">{player.avgAssists}</p>
@@ -195,7 +195,7 @@ export default function PlayersDirectory({ players, teams }: Props) {
               <th className="px-4 py-3 font-semibold text-center text-text-muted">R</th>
               <th className="px-4 py-3 font-semibold text-center text-primary">EFF</th>
               <th className="px-4 py-3 font-semibold text-center text-text-muted">TŠK</th>
-              <th className="px-4 py-3 font-semibold text-center text-text-muted">ATŠ</th>
+              <th className="px-4 py-3 font-semibold text-center text-text-muted">REB</th>
               <th className="px-4 py-3 font-semibold text-center text-text-muted">REZ</th>
               <th className="px-4 py-3 font-semibold text-center text-text-muted">FG%</th>
               <th className="px-4 py-3 font-semibold text-center text-text-muted">3PT%</th>

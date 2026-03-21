@@ -24,8 +24,8 @@ export default async function PlayersPage() {
       <PlayersDirectory players={playersWithStats} teams={teams} />
 
       <div className="bg-card-bg rounded-lg border border-border p-4 text-sm text-text-muted">
-        <p><strong className="text-primary">EFF</strong> (Efektyvumas) = (TŠK + ATŠ + REZ + PER + BLK) - Prašauti - KLD</p>
-        <p className="mt-1">R = Rungtynės | TŠK = Taškai | ATŠ = Atšokę | REZ = Rez. perdavimai | FG% / 3PT% / FT% = pataikymas</p>
+        <p><strong className="text-primary">EFF</strong> (Efektyvumas) = (TŠK + REB + REZ + PER + BLK) - Prašauti - KLD</p>
+        <p className="mt-1">R = Rungtynės | TŠK = Taškai | REB = Rebounds | REZ = Rez. perdavimai | FG% / 3PT% / FT% = pataikymas</p>
       </div>
     </div>
   );

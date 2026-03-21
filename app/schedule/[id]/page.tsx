@@ -237,11 +237,11 @@ export default async function MatchGamePage({ params }: Props) {
             )}
             {leaders.rebounder && (
               <div className="rounded-2xl border border-border bg-card-bg p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-text-muted">Kamuolių lyderis</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-text-muted">REB lyderis</p>
                 <p className="mt-2 text-xl font-black">
                   {playerMap.get(leaders.rebounder.playerId)?.name ?? "?"}
                 </p>
-                <p className="text-sm text-text-muted">{leaders.rebounder.game.rebounds} ATŠ</p>
+                <p className="text-sm text-text-muted">{leaders.rebounder.game.rebounds} REB</p>
               </div>
             )}
             {leaders.eff && (
@@ -268,7 +268,7 @@ export default async function MatchGamePage({ params }: Props) {
                 </div>
                 <div className="rounded-xl border border-border bg-background p-3">
                   <p className="text-xl font-black">{homeTotals.rebounds}</p>
-                  <p className="text-xs text-text-muted">ATŠ</p>
+                  <p className="text-xs text-text-muted">REB</p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-3">
                   <p className="text-xl font-black">{homeTotals.assists}</p>
@@ -289,7 +289,7 @@ export default async function MatchGamePage({ params }: Props) {
                 </div>
                 <div className="rounded-xl border border-border bg-background p-3">
                   <p className="text-xl font-black">{awayTotals.rebounds}</p>
-                  <p className="text-xs text-text-muted">ATŠ</p>
+                  <p className="text-xs text-text-muted">REB</p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-3">
                   <p className="text-xl font-black">{awayTotals.assists}</p>

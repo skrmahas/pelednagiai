@@ -194,7 +194,7 @@ export default async function HomePage() {
                 <div className="flex-1">
                   <h3 className="font-bold">{player.name}</h3>
                   <p className="text-sm text-text-muted">
-                    {teamMap.get(player.teamId ?? "") ?? "Pakaitinis"} | {player.avgPoints} TŠK | {player.avgRebounds} ATŠ | {player.avgAssists} REZ
+                    {teamMap.get(player.teamId ?? "") ?? "Pakaitinis"} | {player.avgPoints} TŠK | {player.avgRebounds} REB | {player.avgAssists} REZ
                   </p>
                 </div>
                 <div className="text-right">

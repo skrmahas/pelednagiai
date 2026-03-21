@@ -730,7 +730,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
               <div className="p-4 bg-background rounded-lg border border-border space-y-4">
                 <h3 className="font-bold">Įvesti statistiką</h3>
                 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   <div>
                     <label className="block text-xs text-text-muted mb-1">Taškai</label>
                     <input
@@ -742,7 +742,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-text-muted mb-1">Atšokę</label>
+                    <label className="block text-xs text-text-muted mb-1">Rebounds</label>
                     <input
                       type="number"
                       min="0"
@@ -937,16 +937,137 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                 </button>
               </div>
               {manageStatsRows.length > 0 && (
-                <div className="overflow-x-auto">
+                <div className="space-y-4">
+                  <div className="grid gap-3 md:hidden">
+                    {manageStatsRows.map((row) => {
+                      const player = players.find((p) => p.id === row.playerId);
+                      const isEditing =
+                        editingStatRow?.playerId === row.playerId &&
+                        editingStatRow?.matchId === row.matchId;
+
+                      return (
+                        <div
+                          key={`${row.playerId}-${row.matchId}`}
+                          className="rounded-lg border border-border bg-card-bg p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-medium">{player?.name ?? row.playerId}</p>
+                              <p className="text-xs text-text-muted">#{row.matchId}</p>
+                            </div>
+                          </div>
+
+                          {!isEditing ? (
+                            <>
+                              <div className="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.points}</p>
+                                  <p className="text-[11px] text-text-muted">PTS</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.rebounds}</p>
+                                  <p className="text-[11px] text-text-muted">REB</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.assists}</p>
+                                  <p className="text-[11px] text-text-muted">AST</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.steals}</p>
+                                  <p className="text-[11px] text-text-muted">STL</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.blocks}</p>
+                                  <p className="text-[11px] text-text-muted">BLK</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.personalFouls ?? 0}</p>
+                                  <p className="text-[11px] text-text-muted">PF</p>
+                                </div>
+                                <div className="rounded border border-border bg-background px-2 py-2">
+                                  <p className="font-bold">{row.game.turnovers}</p>
+                                  <p className="text-[11px] text-text-muted">TO</p>
+                                </div>
+                              </div>
+                              <div className="mt-4 flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingStatRow({ playerId: row.playerId, matchId: row.matchId });
+                                    setEditStatForm({ ...row.game });
+                                  }}
+                                  className="flex-1 rounded bg-primary px-3 py-2 text-sm font-bold text-black"
+                                >
+                                  Redaguoti
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (!confirm(`Ištrinti ${player?.name ?? row.playerId} statistiką šioms rungtynėms?`)) return;
+                                    const res = await fetch(`/api/players/${row.playerId}/stats?matchId=${encodeURIComponent(row.matchId)}`, { method: "DELETE" });
+                                    if (res.ok) setManageStatsRows((prev) => prev.filter((r) => r.playerId !== row.playerId || r.matchId !== row.matchId));
+                                  }}
+                                  className="flex-1 rounded bg-danger px-3 py-2 text-sm font-bold text-white"
+                                >
+                                  Trinti
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="mt-4 grid grid-cols-2 gap-2">
+                                <input type="number" min={0} value={editStatForm.points ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, points: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="PTS" />
+                                <input type="number" min={0} value={editStatForm.rebounds ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, rebounds: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="REB" />
+                                <input type="number" min={0} value={editStatForm.assists ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, assists: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="AST" />
+                                <input type="number" min={0} value={editStatForm.steals ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, steals: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="STL" />
+                                <input type="number" min={0} value={editStatForm.blocks ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, blocks: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="BLK" />
+                                <input type="number" min={0} value={editStatForm.personalFouls ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, personalFouls: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="PF" />
+                                <input type="number" min={0} value={editStatForm.turnovers ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, turnovers: parseInt(e.target.value) || 0 }))} className="px-2 py-2 border rounded bg-background text-center" placeholder="TO" />
+                              </div>
+                              <div className="mt-4 flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const res = await fetch(`/api/players/${row.playerId}/stats`, {
+                                      method: "PATCH",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ matchId: row.matchId, ...editStatForm }),
+                                    });
+                                    if (res.ok) {
+                                      setManageStatsRows((prev) => prev.map((r) => r.playerId === row.playerId && r.matchId === row.matchId ? { ...r, game: editStatForm } : r));
+                                      setEditingStatRow(null);
+                                    }
+                                  }}
+                                  className="flex-1 rounded bg-success px-3 py-2 text-sm font-bold text-white"
+                                >
+                                  Išsaugoti
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingStatRow(null)}
+                                  className="flex-1 rounded bg-border px-3 py-2 text-sm text-text-muted"
+                                >
+                                  Atšaukti
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="hidden overflow-x-auto md:block">
                   <table className="w-full text-sm">
                     <thead className="bg-[#252525]">
                       <tr>
                         <th className="px-2 py-2 text-left text-text-muted">Žaidėjas</th>
                         <th className="px-2 py-2 text-center text-text-muted">TŠK</th>
-                        <th className="px-2 py-2 text-center text-text-muted">ATŠ</th>
+                        <th className="px-2 py-2 text-center text-text-muted">REB</th>
                         <th className="px-2 py-2 text-center text-text-muted">REZ</th>
                         <th className="px-2 py-2 text-center text-text-muted">PER</th>
                         <th className="px-2 py-2 text-center text-text-muted">BLK</th>
+                        <th className="px-2 py-2 text-center text-text-muted">PF</th>
                         <th className="px-2 py-2 text-center text-text-muted">KLD</th>
                         <th className="px-2 py-2 text-right text-text-muted">Veiksmai</th>
                       </tr>
@@ -965,6 +1086,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                                 <td className="px-2 py-2 text-center">{row.game.assists}</td>
                                 <td className="px-2 py-2 text-center">{row.game.steals}</td>
                                 <td className="px-2 py-2 text-center">{row.game.blocks}</td>
+                                <td className="px-2 py-2 text-center">{row.game.personalFouls ?? 0}</td>
                                 <td className="px-2 py-2 text-center">{row.game.turnovers}</td>
                                 <td className="px-2 py-2 text-right">
                                   <button
@@ -992,13 +1114,14 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                               </>
                             ) : (
                               <>
-                                <td colSpan={6} className="px-2 py-2">
-                                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                <td colSpan={7} className="px-2 py-2">
+                                  <div className="grid grid-cols-3 sm:grid-cols-7 gap-2">
                                     <input type="number" min={0} value={editStatForm.points ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, points: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="TŠK" />
-                                    <input type="number" min={0} value={editStatForm.rebounds ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, rebounds: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="ATŠ" />
+                                    <input type="number" min={0} value={editStatForm.rebounds ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, rebounds: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="REB" />
                                     <input type="number" min={0} value={editStatForm.assists ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, assists: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="REZ" />
                                     <input type="number" min={0} value={editStatForm.steals ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, steals: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="PER" />
                                     <input type="number" min={0} value={editStatForm.blocks ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, blocks: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="BLK" />
+                                    <input type="number" min={0} value={editStatForm.personalFouls ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, personalFouls: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="PF" />
                                     <input type="number" min={0} value={editStatForm.turnovers ?? 0} onChange={(e) => setEditStatForm((f) => ({ ...f, turnovers: parseInt(e.target.value) || 0 }))} className="px-2 py-1 border rounded bg-card-bg text-center" placeholder="KLD" />
                                   </div>
                                 </td>
@@ -1031,6 +1154,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                       })}
                     </tbody>
                   </table>
+                </div>
                 </div>
               )}
             </div>
@@ -1272,10 +1396,10 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
       )}
 
       {statsPopup && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-card-bg rounded-lg border border-border w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-card-bg rounded-lg border border-border w-full max-w-5xl max-h-[95vh] overflow-y-auto">
             <div className="sticky top-0 bg-card-bg border-b border-border p-4 z-10">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between gap-3 mb-2">
                 <h2 className="text-xl font-bold">Įvesti žaidėjų statistiką</h2>
                 <button
                   onClick={() => setStatsPopup(null)}
@@ -1284,7 +1408,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                   ✕
                 </button>
               </div>
-              <div className="flex items-center justify-center gap-4 py-3 bg-primary/10 rounded-lg">
+              <div className="flex flex-col items-center justify-center gap-2 py-3 bg-primary/10 rounded-lg sm:flex-row sm:gap-4">
                 <span className="text-lg font-bold">{teamMap.get(statsPopup.match.homeTeamId)}</span>
                 <span className="text-3xl font-black text-primary">
                   {statsPopup.match.homeScore} : {statsPopup.match.awayScore}
@@ -1314,7 +1438,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                       if (!player) return null;
 
                       return (
-                        <div key={ps.playerId} className="bg-background rounded-lg border border-border p-4">
+                        <div key={ps.playerId} className="bg-background rounded-lg border border-border p-3 sm:p-4">
                           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                             <div className="flex items-center gap-3 flex-wrap">
                               <h4 className="font-bold">{player.name}</h4>
@@ -1367,7 +1491,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                               </div>
                             )}
                           </div>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-5 gap-2">
                             <div>
                               <label className="block text-xs text-text-muted mb-1">PTS</label>
                               <input
@@ -1429,6 +1553,16 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                               />
                             </div>
                             <div>
+                              <label className="block text-xs text-text-muted mb-1">PF</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={ps.personalFouls}
+                                onChange={(e) => updatePlayerStat(ps.playerId, 'personalFouls', e.target.value)}
+                                className="w-full px-2 py-1 border border-border rounded bg-card-bg text-center text-sm"
+                              />
+                            </div>
+                            <div className="col-span-2 sm:col-span-2 xl:col-span-1">
                               <label className="block text-xs text-text-muted mb-1">FG</label>
                               <div className="flex gap-1">
                                 <input
@@ -1449,7 +1583,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                                 />
                               </div>
                             </div>
-                            <div>
+                            <div className="col-span-2 sm:col-span-2 xl:col-span-1">
                               <label className="block text-xs text-text-muted mb-1">3PT</label>
                               <div className="flex gap-1">
                                 <input
@@ -1470,7 +1604,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
                                 />
                               </div>
                             </div>
-                            <div>
+                            <div className="col-span-2 sm:col-span-2 xl:col-span-1">
                               <label className="block text-xs text-text-muted mb-1">FT</label>
                               <div className="flex gap-1">
                                 <input
@@ -1500,7 +1634,7 @@ export default function AdminDashboard({ matches: initialMatches, teams, wagers:
               })}
             </div>
 
-            <div className="sticky bottom-0 bg-card-bg border-t border-border p-4 flex gap-3">
+            <div className="sticky bottom-0 bg-card-bg border-t border-border p-4 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={() => setStatsPopup(null)}
                 className="flex-1 px-4 py-3 bg-border text-text-muted rounded font-bold hover:bg-card-bg-hover transition-colors"
